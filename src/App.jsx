@@ -6,6 +6,10 @@ import Analysis from './pages/Analysis';
 import Insights from './pages/Insights';
 import Contact from './pages/Contact';
 import FarmingTool from './components/FarmingTool';
+import SoilAnalysis from './pages/SoilAnalysis';
+import CropHealth from './pages/CropHealth';
+import Monitoring from './pages/Monitoring';
+import MarketIntel from './pages/MarketIntel';
 
 function App() {
   return (
@@ -18,6 +22,10 @@ function App() {
         <Route path="/insights" element={<Insights />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/farming-tool" element={<FarmingTool />} />
+        <Route path="/soil-analysis" element={<SoilAnalysis />} />
+        <Route path="/crop-health" element={<CropHealth />} />
+        <Route path="/monitoring" element={<Monitoring />} />
+        <Route path="/market-intel" element={<MarketIntel />} />
       </Routes>
     </Router>
   );

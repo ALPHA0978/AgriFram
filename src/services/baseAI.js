@@ -1,9 +1,9 @@
 export class BaseAI {
   static async callAPI(prompt, systemPrompt = '') {
-    const API_KEY = import.meta.env.VITE_HUGGINGFACE_API_KEY;
+    const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
     
     if (!API_KEY) {
-      throw new Error('Hugging Face API key not found');
+      throw new Error('OpenRouter API key not found');
     }
 
     try {
@@ -12,17 +12,17 @@ export class BaseAI {
         { role: "user", content: prompt }
       ];
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
+          model: "nvidia/nemotron-nano-9b-v2:free",
           messages: messages,
           max_tokens: 2000,
-          temperature: 0.7
+          temperature: 0.1
         })
       });
 
@@ -40,28 +40,32 @@ export class BaseAI {
 
   static parseJSON(response) {
     try {
-      // First try to parse the entire response
       return JSON.parse(response);
     } catch (error) {
       try {
-        // Try to extract JSON from response with better regex
-        const jsonMatch = response.match(/\{[\s\S]*?\}(?=\s*$|\s*[^\}])/g);
-        if (jsonMatch && jsonMatch.length > 0) {
-          // Try the last complete JSON object found
-          const lastJson = jsonMatch[jsonMatch.length - 1];
-          return JSON.parse(lastJson);
-        }
-        
-        // Try to find JSON between code blocks
+        // Extract JSON from code blocks
         const codeBlockMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (codeBlockMatch) {
           return JSON.parse(codeBlockMatch[1].trim());
         }
         
-        // Try to find any valid JSON structure
-        const simpleJsonMatch = response.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
-        if (simpleJsonMatch) {
-          return JSON.parse(simpleJsonMatch[0]);
+        // Find complete JSON objects with proper nesting
+        const jsonMatches = response.match(/\{(?:[^{}]|\{[^{}]*\})*\}/g);
+        if (jsonMatches) {
+          for (let i = jsonMatches.length - 1; i >= 0; i--) {
+            try {
+              const parsed = JSON.parse(jsonMatches[i]);
+              if (parsed && typeof parsed === 'object') {
+                return parsed;
+              }
+            } catch (e) { continue; }
+          }
+        }
+        
+        // Look for JSON after specific keywords
+        const afterJsonMatch = response.match(/(?:json|result|output)\s*:?\s*(\{[\s\S]*?\})/);
+        if (afterJsonMatch) {
+          return JSON.parse(afterJsonMatch[1]);
         }
         
         return null;

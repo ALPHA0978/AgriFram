@@ -51,7 +51,7 @@ export class FarmerAI extends BaseAI {
     try {
       console.log('FarmerAI: Starting soil analysis for:', soilSample);
       
-      const systemPrompt = `You are a soil analysis expert. Return ONLY valid JSON with no additional text:
+      const systemPrompt = `You are a soil analysis expert. You MUST return exactly 5 crops in suitableCrops array. Return ONLY valid JSON with no additional text:
 {
   "soilType": "soil classification",
   "pH": "pH level and recommendations",
@@ -62,7 +62,47 @@ export class FarmerAI extends BaseAI {
   "fertilizers": ["recommended fertilizers"],
   "suitableCrops": [
     {
-      "name": "crop name",
+      "name": "crop name 1",
+      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
+      "season": "Kharif|Rabi|Zaid",
+      "duration": "3-6 months",
+      "investment": "15-25k per acre",
+      "roi": "120-180%",
+      "marketDemand": "High|Medium|Low",
+      "riskLevel": "Low|Medium|High"
+    },
+    {
+      "name": "crop name 2",
+      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
+      "season": "Kharif|Rabi|Zaid",
+      "duration": "3-6 months",
+      "investment": "15-25k per acre",
+      "roi": "120-180%",
+      "marketDemand": "High|Medium|Low",
+      "riskLevel": "Low|Medium|High"
+    },
+    {
+      "name": "crop name 3",
+      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
+      "season": "Kharif|Rabi|Zaid",
+      "duration": "3-6 months",
+      "investment": "15-25k per acre",
+      "roi": "120-180%",
+      "marketDemand": "High|Medium|Low",
+      "riskLevel": "Low|Medium|High"
+    },
+    {
+      "name": "crop name 4",
+      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
+      "season": "Kharif|Rabi|Zaid",
+      "duration": "3-6 months",
+      "investment": "15-25k per acre",
+      "roi": "120-180%",
+      "marketDemand": "High|Medium|Low",
+      "riskLevel": "Low|Medium|High"
+    },
+    {
+      "name": "crop name 5",
       "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
       "season": "Kharif|Rabi|Zaid",
       "duration": "3-6 months",
@@ -74,7 +114,7 @@ export class FarmerAI extends BaseAI {
   ]
 }`;
 
-      const response = await this.callAPI(`Analyze soil with pH:${soilSample.ph}, N:${soilSample.nitrogen}ppm, P:${soilSample.phosphorus}ppm, K:${soilSample.potassium}ppm, Moisture:${soilSample.moisture}%, Organic:${soilSample.organicMatter}%. Provide profitable crop recommendations with investment and ROI details.`, systemPrompt);
+      const response = await this.callAPI(`Analyze soil with pH:${soilSample.ph}, N:${soilSample.nitrogen}ppm, P:${soilSample.phosphorus}ppm, K:${soilSample.potassium}ppm, Moisture:${soilSample.moisture}%, Organic:${soilSample.organicMatter}%. IMPORTANT: You MUST provide exactly 5 different crops in the suitableCrops array. Do not provide less than 5 crops.`, systemPrompt);
       console.log('FarmerAI: Raw API response:', response);
       
       const parsed = this.parseJSON(response);
@@ -153,20 +193,27 @@ export class FarmerAI extends BaseAI {
     return this.parseJSON(response) || {shortages: ['Turmeric', 'Coriander'], priceRising: ['Chili', 'Millets'], nutritionNeeds: ['protein', 'iron']};
   }
 
-  static async suggestCropsBasedOnMarket(marketConditions, location, soilType, budget) {
-    const systemPrompt = `You are an agricultural expert. Return ONLY valid JSON:
+  static async suggestCropsBasedOnMarket(marketConditions, location, soilType, budget, season, farmSize, waterAvailability) {
+    const systemPrompt = `You are an agricultural expert specializing in soil-crop compatibility and market analysis. Return ONLY valid JSON:
 [{
   "name": "crop name",
   "profit": "high|medium|low",
   "reason": "why profitable based on market",
-  "marketAlignment": "how it aligns with market needs"
+  "marketAlignment": "how it aligns with market needs",
+  "soilSuitability": "why this crop is suitable for the specified soil type"
 }]`;
 
     const marketInfo = `Market shortages: ${marketConditions.shortages?.join(',')}, Corporate demand: ${JSON.stringify(marketConditions.corporateDemand)}, Rising prices: ${marketConditions.priceRising?.join(',')}, Nutrition needs: ${marketConditions.nutritionNeeds?.join(',')}`;
-    const response = await this.callAPI(`${marketInfo}. Location: ${location}, Soil: ${soilType}, Budget: ${budget}. Suggest 3 most profitable crops that align with market conditions.`, systemPrompt);
+    const response = await this.callAPI(`${marketInfo}. Location: ${location}, Season: ${season}, Soil: ${soilType}, Farm Size: ${farmSize} acres, Budget: ${budget}, Water: ${waterAvailability}. Suggest exactly 5 most profitable crops that are suitable for ${soilType} soil in ${season} season with ${waterAvailability} water availability, within ${budget} budget for ${farmSize} acres in ${location}. Consider: 1) Soil-crop compatibility 2) Season suitability 3) Water requirements 4) Budget constraints 5) Regional climate 6) Market profitability.`, systemPrompt);
     
     const parsed = this.parseJSON(response);
-    return parsed || [{name: 'Turmeric', profit: 'high', reason: 'High market demand'}, {name: 'Coriander', profit: 'medium', reason: 'Stable prices'}, {name: 'Chili', profit: 'high', reason: 'Export potential'}];
+    return parsed || [
+      {name: 'Groundnut', profit: 'high', reason: 'High market demand', soilSuitability: 'Well-suited for red soil with good drainage'}, 
+      {name: 'Cotton', profit: 'high', reason: 'Export potential', soilSuitability: 'Thrives in red soil with moderate fertility'}, 
+      {name: 'Sorghum', profit: 'medium', reason: 'Drought tolerance', soilSuitability: 'Excellent for red soil, drought-resistant'},
+      {name: 'Sunflower', profit: 'high', reason: 'Oil industry demand', soilSuitability: 'Adapts well to red soil conditions'},
+      {name: 'Millets', profit: 'medium', reason: 'Health food trend', soilSuitability: 'Perfect for red soil, low water requirement'}
+    ];
   }
 
   static async analyzeCorporateProcurement(crops, location) {
@@ -179,8 +226,14 @@ export class FarmerAI extends BaseAI {
   "contractOpportunity": "direct contract potential"
 }]`;
 
-    const response = await this.callAPI(`Analyze which companies are increasing procurement for ${crops.join(', ')} in ${location}. Focus on food processing companies, FMCG brands, and export companies.`, systemPrompt);
-    return this.parseJSON(response) || [{company: 'Food Corp Ltd', crops: crops.slice(0,2), increasePercentage: '30%', reason: 'Export demand'}];
+    const response = await this.callAPI(`Analyze which companies are increasing procurement for ${crops.join(', ')} in ${location}. Focus on food processing companies, FMCG brands, and export companies. Provide at least 5-7 companies with their procurement increases.`, systemPrompt);
+    return this.parseJSON(response) || [
+      {company: 'Food Corp Ltd', crops: crops.slice(0,2), increasePercentage: '30%', reason: 'Export demand'},
+      {company: 'ITC Limited', crops: [crops[0]], increasePercentage: '25%', reason: 'Processing expansion'},
+      {company: 'Adani Wilmar', crops: crops.slice(1,3), increasePercentage: '20%', reason: 'Supply chain growth'},
+      {company: 'Britannia Industries', crops: [crops[0], crops[2]], increasePercentage: '35%', reason: 'Product diversification'},
+      {company: 'Nestle India', crops: crops.slice(0,2), increasePercentage: '15%', reason: 'Raw material sourcing'}
+    ];
   }
 
   static async analyzeRegionalGaps(crops, location) {
@@ -213,19 +266,18 @@ export class FarmerAI extends BaseAI {
     return this.parseJSON(response) || crops.map(crop => ({crop, futureValueIncrease: '+25%', reason: 'Market growth'}));
   }
 
-  static getDefaultSoilAnalysis() {
-    return {
-      soilType: 'Loamy',
-      pH: '6.5',
-      healthScore: 85,
-      nutrients: {nitrogen: 'Medium', phosphorus: 'Medium', potassium: 'High'},
-      improvements: ['Add organic compost', 'Balance pH levels'],
-      fertilizers: ['NPK 10:26:26', 'Organic manure'],
-      suitableCrops: [
-        {name: 'Turmeric', profitLevel: 'High Profit', season: 'Kharif', duration: '8-10 months', investment: '₹20k/acre', roi: '150%', marketDemand: 'High', riskLevel: 'Low'},
-        {name: 'Coriander', profitLevel: 'Medium Profit', season: 'Rabi', duration: '3-4 months', investment: '₹15k/acre', roi: '120%', marketDemand: 'High', riskLevel: 'Low'}
-      ]
-    };
+  static async analyzeGrowthTimeline(crops, season) {
+    const systemPrompt = `You are a crop timeline specialist. Return ONLY valid JSON:
+[{
+  "crop": "crop name",
+  "growthPeriod": "X-Y days",
+  "season": "best season",
+  "stages": ["germination", "vegetative", "flowering", "harvest"],
+  "criticalPeriods": ["water-sensitive periods"]
+}]`;
+
+    const response = await this.callAPI(`Analyze growth timeline for ${crops.join(', ')} in ${season} season. Provide detailed growth periods and critical stages.`, systemPrompt);
+    return this.parseJSON(response) || crops.map(crop => ({crop, growthPeriod: '90-120 days', season: 'Kharif'}));
   }
 
   static getDefaultCropAnalysis() {
@@ -247,6 +299,25 @@ export class FarmerAI extends BaseAI {
       },
       riskFactors: ['Monsoon delay risk', 'Pest outbreak possibility', 'Price volatility'],
       costAnalysis: {totalCare: '₹6000-8000', expectedRevenue: '₹28000-35000', profitMargin: '65-75%'}
+    };
+  }
+
+  static getDefaultSoilAnalysis() {
+    return {
+      soilType: 'Loamy soil - well-balanced for most crops',
+      pH: '6.8 - Slightly acidic, good for most crops',
+      healthScore: 82,
+      nutrients: {nitrogen: 'Medium', phosphorus: 'High', potassium: 'Medium'},
+      organicMatter: '3.2% - Good organic content',
+      improvements: ['Add compost', 'Crop rotation', 'Cover cropping'],
+      fertilizers: ['NPK 19:19:19', 'Organic compost', 'Micronutrient mix'],
+      suitableCrops: [
+        {name: 'Wheat', profitLevel: 'High Profit', season: 'Rabi', duration: '4-5 months', investment: '20-25k per acre', roi: '150-180%', marketDemand: 'High', riskLevel: 'Low'},
+        {name: 'Rice', profitLevel: 'Medium Profit', season: 'Kharif', duration: '3-4 months', investment: '18-22k per acre', roi: '120-150%', marketDemand: 'High', riskLevel: 'Medium'},
+        {name: 'Sugarcane', profitLevel: 'High Profit', season: 'Kharif', duration: '12-18 months', investment: '35-45k per acre', roi: '180-220%', marketDemand: 'High', riskLevel: 'Medium'},
+        {name: 'Cotton', profitLevel: 'Good Profit', season: 'Kharif', duration: '5-6 months', investment: '25-30k per acre', roi: '140-170%', marketDemand: 'Medium', riskLevel: 'Medium'},
+        {name: 'Maize', profitLevel: 'Stable Profit', season: 'Kharif', duration: '3-4 months', investment: '15-20k per acre', roi: '110-140%', marketDemand: 'Medium', riskLevel: 'Low'}
+      ]
     };
   }
 
