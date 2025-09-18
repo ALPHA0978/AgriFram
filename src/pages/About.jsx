@@ -41,7 +41,7 @@ const About = () => {
               ABOUT <br /> FARMAI
             </h1>
             <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto md:mx-0">
-              Revolutionizing agriculture through **AI-powered insights** and sustainable farming solutions. Our mission is to empower farmers worldwide.
+              AI-powered mobile portal for farmers' disease diagnosis and reporting, contributing to SDG 2: Zero Hunger through enhanced agricultural productivity and food security.
             </p>
           </div>
 
@@ -68,47 +68,78 @@ const About = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           <Card 
             icon={<Target className="w-8 h-8 text-green-400" />} 
-            title="Our Mission" 
-            text="To empower farmers with AI-driven insights that increase productivity, reduce waste, and promote sustainable agriculture practices." 
+            title="Problem Statement" 
+            text="Farmers Disease Diagnostic/Reporting Portal - Mobile Portal AI Based. Addressing challenges in diagnosing and reporting diseases affecting livestock and crops, especially in remote areas." 
           />
           <Card 
             icon={<Users className="w-8 h-8 text-green-400" />} 
-            title="Our Team" 
-            text="A diverse group of agricultural experts, AI researchers, and sustainability advocates working together for a better future." 
+            title="Ministry Partnership" 
+            text="Developed in collaboration with Ministry of Fisheries, Animal Husbandry and Dairying, Department of Animal Husbandry & Dairying for nationwide impact." 
           />
           <Card 
             icon={<Shield className="w-8 h-8 text-green-400" />} 
-            title="Our Values" 
-            text="Innovation, sustainability, and farmer empowerment drive everything we do. We believe in technology that serves humanity." 
+            title="AI-Powered Solution" 
+            text="Mobile portal with AI algorithms analyzing reported data to provide accurate diagnoses and suggest appropriate treatments for crop and livestock diseases." 
           />
         </div>
 
-        {/* Impact & Tech Section */}
-        <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
+        {/* Expected Outcomes Section */}
+        <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500">
-            Contributing to SDG 2: Zero Hunger
+            Expected Outcomes & SDG 2 Impact
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
               <h3 className="text-2xl font-bold mb-6 text-green-400 flex items-center gap-2">
-                Our Impact 
+                Disease Management 
               </h3>
               <ul className="space-y-4 text-gray-300">
-                <ListItem text="Increasing crop yields by up to 85%" />
-                <ListItem text="Reducing water usage through smart irrigation" />
-                <ListItem text="Minimizing pesticide use with AI disease detection" />
-                <ListItem text="Supporting 10,000+ farmers globally" />
+                <ListItem text="Enhanced Disease Diagnosis through AI" />
+                <ListItem text="Timely Reporting and Intervention" />
+                <ListItem text="Increased Access to Expert Knowledge" />
+                <ListItem text="Cost-Effective Disease Management" />
               </ul>
             </div>
             <div>
               <h3 className="text-2xl font-bold mb-6 text-green-400 flex items-center gap-2">
-                Technology Stack 
+                Food Security Impact 
               </h3>
               <ul className="space-y-4 text-gray-300">
-                <ListItem text="Machine Learning for crop analysis" />
-                <ListItem text="IoT sensors for real-time monitoring" />
-                <ListItem text="Satellite imagery for field mapping" />
-                <ListItem text="Mobile-first design for accessibility" />
+                <ListItem text="Improved Farm Productivity" />
+                <ListItem text="Data Collection and Analysis" />
+                <ListItem text="Empowerment and Education of Farmers" />
+                <ListItem text="Sustainable Agriculture Practices" />
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        {/* Technical Integration Section */}
+        <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
+          <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500">
+            AI Integration & Community Impact
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div>
+              <h3 className="text-2xl font-bold mb-6 text-green-400 flex items-center gap-2">
+                AI Technology 
+              </h3>
+              <ul className="space-y-4 text-gray-300">
+                <ListItem text="Integration with existing NDLM systems" />
+                <ListItem text="Image and symptom analysis algorithms" />
+                <ListItem text="Automated disease/condition reports" />
+                <ListItem text="Real-time alerts to veterinarians" />
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold mb-6 text-green-400 flex items-center gap-2">
+                Community Benefits 
+              </h3>
+              <ul className="space-y-4 text-gray-300">
+                <ListItem text="Integration with Existing Surveillance Systems" />
+                <ListItem text="Community Engagement and Support" />
+                <ListItem text="Mobile application accessibility" />
+                <ListItem text="Contributing to Zero Hunger mission" />
               </ul>
             </div>
           </div>

@@ -194,7 +194,7 @@ const Home = () => {
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-green-500 to-green-300">SOLUTIONS</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0">
-            Harness the power of AI to optimize your farm's productivity, enhance crop health, and ensure sustainable growth.
+            AI-powered crop disease detection for farmers contributing to SDG 2: Zero Hunger through smart agriculture and food security.
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
@@ -202,7 +202,7 @@ const Home = () => {
               onClick={() => navigate('/farming-tool')}
               className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
             >
-              <span>Explore AI Tools</span>
+              <span>Get Farmer Tools</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </button>
             <button
@@ -218,8 +218,8 @@ const Home = () => {
               <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                 <Leaf className="w-6 h-6 text-green-400" />
               </div>
-              <div className="text-gray-300 font-medium text-sm">Crop Health</div>
-              <div className="font-bold tracking-wide text-white">Monitoring</div>
+              <div className="text-gray-300 font-medium text-sm">Crop Disease</div>
+              <div className="font-bold tracking-wide text-white">Detection</div>
             </div>
             <div className="bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-4 text-center border border-green-400/30 shadow-lg shadow-green-500/10">
               <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">

@@ -9,7 +9,7 @@ const SustainableFarmingTool = () => {
     {
       id: 'crop',
       title: 'Crop Health',
-      description: 'AI-powered crop health monitoring for optimal yield and food security',
+      description: 'Disease detection, pest identification, and treatment recommendations',
       icon: <Camera className="w-8 h-8 text-green-400" />,
       path: '/crop-health'
     },
@@ -66,11 +66,11 @@ const SustainableFarmingTool = () => {
         
         {/* Title Section */}
         <div className="text-center mb-20">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
-            CROP RECOMMENDATION <br /> SYSTEM
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
+            AI FARMING <br /> MODULES
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            AI-powered crop recommendations to achieve food security and contribute to SDG 2: Zero Hunger.
+            Choose your AI-powered farming tool to optimize productivity and sustainability.
           </p>
         </div>
 
@@ -114,7 +114,7 @@ const SustainableFarmingTool = () => {
         <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">
-              Contributing to SDG 2: Zero Hunger
+              Contributing to SIH 2025 gole
             </h2>
             <p className="text-lg text-gray-300 mb-8 max-w-3xl mx-auto">
               Our AI-powered platform directly addresses global hunger by increasing agricultural productivity, 
