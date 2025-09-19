@@ -189,7 +189,7 @@ const Home = () => {
         
         {/* Left Section - Hero & Features */}
         <div className="flex-1 flex flex-col space-y-8 text-center lg:text-left">
-          <h1 className="text-5xl md:text-6xl lg:text-8xl font-black leading-tight tracking-tighter">
+          <h1 className="text-4xl md:text-6xl lg:text-8xl font-black leading-tight tracking-tighter">
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-white to-green-700">SMART FARMING</span>
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-green-500 to-green-300">SOLUTIONS</span>
           </h1>
