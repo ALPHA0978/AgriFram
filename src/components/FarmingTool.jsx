@@ -10,28 +10,28 @@ const SustainableFarmingTool = () => {
       id: 'crop',
       title: 'Crop Health',
       description: 'Disease detection, pest identification, and treatment recommendations',
-      icon: <Camera className="w-8 h-8 text-green-400" />,
+      icon: <Camera className="w-6 h-6" />,
       path: '/crop-health'
     },
     {
       id: 'soil',
       title: 'Soil Analysis',
       description: 'AI-powered soil health assessment with NPK analysis and crop recommendations',
-      icon: <Beaker className="w-8 h-8 text-green-400" />,
+      icon: <Beaker className="w-6 h-6" />,
       path: '/soil-analysis'
     },
     {
       id: 'monitoring',
       title: 'IoT Monitoring',
       description: 'Real-time sensor data analysis and irrigation optimization',
-      icon: <Satellite className="w-8 h-8 text-green-400" />,
+      icon: <Satellite className="w-6 h-6" />,
       path: '/monitoring'
     },
     {
       id: 'market',
       title: 'Market Intelligence',
       description: 'Market analysis, price trends, and profitability insights',
-      icon: <TrendingUp className="w-8 h-8 text-green-400" />,
+      icon: <TrendingUp className="w-6 h-6" />,
       path: '/market-intel'
     }
   ];
@@ -75,35 +75,31 @@ const SustainableFarmingTool = () => {
         </div>
 
         {/* Module Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {modules.map((module) => (
             <div
               key={module.id}
-              className="bg-gray-900/50 rounded-[40px] p-8 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer"
+              className="bg-gray-900/50 rounded-3xl p-6 border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-filter backdrop-blur-sm transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer"
               onClick={() => navigate(module.path)}
             >
-              <div className="bg-green-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6 group-hover:bg-green-400/20 transition-all duration-300">
-                {module.icon}
+              <div className="bg-green-400/10 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-green-400/20 transition-all duration-300">
+                <div className="w-6 h-6 text-green-400">{module.icon}</div>
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white group-hover:text-green-400 transition-colors duration-300">{module.title}</h3>
-              <p className="text-gray-300 mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold mb-3 text-white group-hover:text-green-400 transition-colors duration-300">{module.title}</h3>
+              <p className="text-gray-300 text-sm mb-4 leading-relaxed">
                 {module.description}
               </p>
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center justify-between py-2 border-b border-gray-700/50">
-                  <span className="text-gray-400">Status</span>
-                  <span className="text-green-400 font-bold">Ready</span>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-gray-400 text-xs">Status</span>
+                  <span className="text-green-400 font-medium text-xs">Ready</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-gray-700/50">
-                  <span className="text-gray-400">AI Model</span>
-                  <span className="text-white font-medium">NVIDIA Nemotron</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-gray-400">Analysis</span>
-                  <span className="text-white font-medium">Real-time</span>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-gray-400 text-xs">Analysis</span>
+                  <span className="text-white font-medium text-xs">Real-time</span>
                 </div>
               </div>
-              <button className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-6 py-3 transition-all duration-300 transform group-hover:scale-105 shadow-lg hover:shadow-green-500/30">
+              <button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-full px-4 py-2 text-sm transition-all duration-300 transform group-hover:scale-105 shadow-lg hover:shadow-green-500/30">
                 Launch {module.title}
               </button>
             </div>

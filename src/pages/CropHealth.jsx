@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 import CustomDropdown from '../components/CustomDropdown';
 
@@ -22,6 +22,10 @@ const CropHealth = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [cropAnalysis, setCropAnalysis] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const analyzeCropWithAI = async () => {
     setIsAnalyzing(true);
@@ -32,6 +36,65 @@ const CropHealth = () => {
       console.error('Crop analysis error:', error);
       setCropAnalysis({
         error: 'AI crop analysis failed. Please check your data and try again.',
+        cropHealth: 'Unknown'
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      setCameraOpen(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Camera access error:', error);
+      alert('Camera access denied or not available');
+    }
+  };
+
+  const capturePhoto = () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (canvas && video) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL('image/jpeg');
+      setCapturedImage(imageData);
+      stopCamera();
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+    setCameraOpen(false);
+  };
+
+  const analyzeImage = async () => {
+    if (!capturedImage) return;
+    setIsAnalyzing(true);
+    try {
+      const imageAnalysis = {
+        ...cropData,
+        imageData: capturedImage,
+        analysisType: 'visual'
+      };
+      const analysis = await FarmerAI.analyzeCrop(imageAnalysis);
+      setCropAnalysis(analysis);
+    } catch (error) {
+      console.error('Image analysis error:', error);
+      setCropAnalysis({
+        error: 'AI image analysis failed. Please try again.',
         cropHealth: 'Unknown'
       });
     } finally {
@@ -205,23 +268,33 @@ const CropHealth = () => {
                 />
               </div>
             </div>
-            <button
-              onClick={analyzeCropWithAI}
-              disabled={!cropData.cropType || isAnalyzing}
-              className="w-full mt-8 flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  <span>Analyzing Crop...</span>
-                </>
-              ) : (
-                <>
-                  <Camera className="w-5 h-5" />
-                  <span>Analyze Health</span>
-                </>
-              )}
-            </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+              <button
+                onClick={startCamera}
+                disabled={isAnalyzing}
+                className="flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
+              >
+                <Camera className="w-5 h-5" />
+                <span>Camera Scan</span>
+              </button>
+              <button
+                onClick={analyzeCropWithAI}
+                disabled={!cropData.cropType || isAnalyzing}
+                className="flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    <span>Analyzing...</span>
+                  </>
+                ) : (
+                  <>
+                    <BarChart3 className="w-5 h-5" />
+                    <span>Analyze Data</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Crop Results Card */}
@@ -505,6 +578,93 @@ const CropHealth = () => {
           </div>
         </div>
       </div>
+
+      {/* Camera Modal */}
+      {cameraOpen && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
+          <div className="relative w-full max-w-md mx-4">
+            <button
+              onClick={stopCamera}
+              className="absolute top-4 right-4 z-10 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="bg-gray-900 rounded-2xl p-6 border border-green-400/30">
+              <h3 className="text-xl font-bold text-white mb-4 text-center">Plant Disease Scanner</h3>
+              <div className="relative">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-64 object-cover rounded-lg bg-gray-800"
+                />
+                <div className="absolute inset-0 border-2 border-green-400/50 rounded-lg pointer-events-none">
+                  <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-green-400"></div>
+                  <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-green-400"></div>
+                  <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-green-400"></div>
+                  <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-green-400"></div>
+                </div>
+              </div>
+              <button
+                onClick={capturePhoto}
+                className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
+              >
+                <Camera className="w-5 h-5" />
+                <span>Capture Plant Image</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Captured Image Modal */}
+      {capturedImage && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
+          <div className="relative w-full max-w-md mx-4">
+            <button
+              onClick={() => setCapturedImage(null)}
+              className="absolute top-4 right-4 z-10 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="bg-gray-900 rounded-2xl p-6 border border-green-400/30">
+              <h3 className="text-xl font-bold text-white mb-4 text-center">Captured Plant Image</h3>
+              <img
+                src={capturedImage}
+                alt="Captured plant"
+                className="w-full h-64 object-cover rounded-lg"
+              />
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <button
+                  onClick={() => setCapturedImage(null)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg font-medium transition-colors"
+                >
+                  Retake
+                </button>
+                <button
+                  onClick={analyzeImage}
+                  disabled={isAnalyzing}
+                  className="bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors disabled:bg-gray-600 flex items-center justify-center space-x-2"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>Analyzing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <BarChart3 className="w-4 h-4" />
+                      <span>Analyze</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
   );
 };
