@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, ArrowRight, Cloud, Droplet, Wind, Thermometer, TrendingUp, Cpu, Wrench, Menu, X, ArrowUpRight } from 'lucide-react';
+import { Leaf, ArrowRight, Cloud, Droplet, Wind, Thermometer, TrendingUp, Cpu, Wrench, Menu, X, ArrowUpRight, Stethoscope } from 'lucide-react';
 import Prism from '../components/Prism';
 
 const Home = () => {
@@ -194,7 +194,7 @@ const Home = () => {
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-green-500 to-green-300">SOLUTIONS</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0">
-            AI-powered crop disease detection for farmers contributing to SDG 2: Zero Hunger through smart agriculture and food security.
+            Advanced AI solutions for agriculture and healthcare - revolutionizing farming and medical diagnosis with cutting-edge technology.
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
@@ -202,14 +202,15 @@ const Home = () => {
               onClick={() => navigate('/farming-tool')}
               className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
             >
-              <span>Get Farmer Tools</span>
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <Leaf className="w-5 h-5" />
+              <span>Farming AI</span>
             </button>
             <button
               onClick={() => navigate('/about')}
-              className="flex items-center justify-center space-x-2 bg-transparent border border-white/20 text-white font-semibold rounded-full px-8 py-3 shadow-lg hover:bg-white/20 transition-all duration-300 transform hover:scale-105"
+              className="flex items-center justify-center space-x-2 bg-{rgb} hover:bg-teal-600 text-white font-semibold rounded-full px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-teal-500/30"
             >
-              <span>Learn More</span>
+              
+              <span>Learn MOre</span>
             </button>
           </div>
 
