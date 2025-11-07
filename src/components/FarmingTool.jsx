@@ -1,10 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
 import { ArrowLeft, Leaf, Beaker, Camera, Satellite, TrendingUp, MapPin } from 'lucide-react';
-=======
-import { ArrowLeft, Leaf, Beaker, Camera, Satellite, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
->>>>>>> 7ce6e76c693983f8403bdc3172b349977ec47540
 
 const SustainableFarmingTool = () => {
   const navigate = useNavigate();
