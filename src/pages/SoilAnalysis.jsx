@@ -19,6 +19,7 @@ const SoilAnalysis = () => {
   const [soilAnalysis, setSoilAnalysis] = useState(null);
   const [uploadedDoc, setUploadedDoc] = useState(null);
   const [isProcessingDoc, setIsProcessingDoc] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const fileInputRef = useRef(null);
@@ -50,6 +51,14 @@ const SoilAnalysis = () => {
 
   const processDocument = async (file) => {
     setIsProcessingDoc(true);
+    setProcessingProgress(0);
+    
+    const progressInterval = setInterval(() => {
+      setProcessingProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 15;
+      });
+    }, 300);
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -87,7 +96,12 @@ const SoilAnalysis = () => {
       console.error('Document processing error:', error);
       alert('Failed to process soil report. Please try again.');
     } finally {
-      setIsProcessingDoc(false);
+      clearInterval(progressInterval);
+      setProcessingProgress(100);
+      setTimeout(() => {
+        setIsProcessingDoc(false);
+        setProcessingProgress(0);
+      }, 500);
     }
   };
 
@@ -312,11 +326,25 @@ const SoilAnalysis = () => {
             />
             {uploadedDoc && (
               <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                <div className="flex items-center space-x-2 text-purple-400">
+                <div className="flex items-center space-x-2 text-purple-400 mb-3">
                   <FileText className="w-5 h-5" />
                   <span className="font-medium">Soil Report Uploaded:</span>
                   <span>{uploadedDoc.name}</span>
                 </div>
+                {isProcessingDoc && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-purple-300">
+                      <span>Processing document...</span>
+                      <span>{Math.round(processingProgress)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-purple-500 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${processingProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
