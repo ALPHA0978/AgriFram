@@ -46,15 +46,42 @@ const CropHealth = () => {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        } 
       });
       setCameraOpen(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+      
+      // Wait for next tick to ensure modal is rendered
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(console.error);
+        }
+      }, 100);
     } catch (error) {
       console.error('Camera access error:', error);
-      alert('Camera access denied or not available');
+      // Try with user camera if environment camera fails
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          } 
+        });
+        setCameraOpen(true);
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(console.error);
+          }
+        }, 100);
+      } catch (fallbackError) {
+        console.error('Fallback camera error:', fallbackError);
+        alert('Camera access denied or not available. Please check permissions.');
+      }
     }
   };
 
@@ -596,7 +623,13 @@ const CropHealth = () => {
                   ref={videoRef}
                   autoPlay
                   playsInline
+                  muted
                   className="w-full h-64 object-cover rounded-lg bg-gray-800"
+                  onLoadedMetadata={() => {
+                    if (videoRef.current) {
+                      videoRef.current.play().catch(console.error);
+                    }
+                  }}
                 />
                 <div className="absolute inset-0 border-2 border-green-400/50 rounded-lg pointer-events-none">
                   <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-green-400"></div>
