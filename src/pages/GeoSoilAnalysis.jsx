@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Beaker, BarChart3, Loader, AlertTriangle, CheckCircle, Upload, FileText, Mic, MicOff, Navigation, Target } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
-import { BaseAI } from '../services/baseAI';
 
 const GeoSoilAnalysis = () => {
   const navigate = useNavigate();
@@ -37,6 +36,7 @@ const GeoSoilAnalysis = () => {
         async (position) => {
           const { latitude, longitude } = position.coords;
           setLocation({ lat: latitude, lng: longitude, address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` });
+          await fetchNearbyFieldData(latitude, longitude);
           setIsGettingLocation(false);
         },
         (error) => {
@@ -53,47 +53,55 @@ const GeoSoilAnalysis = () => {
 
   const fetchNearbyFieldData = async (lat, lng) => {
     setIsLoadingNearbyData(true);
-    
-    // Use fallback data instead of API call to avoid rate limits
-    setTimeout(() => {
-      const fallbackFields = [
-        {
-          id: 'field_1',
-          distance: '0.3km',
-          cropType: 'Wheat',
-          soilData: { ph: '6.8', moisture: '42', organicMatter: '3.1', nitrogen: '125', phosphorus: '28', potassium: '185', salinity: '0.7', temperature: '23' }
-        },
-        {
-          id: 'field_2', 
-          distance: '0.7km',
-          cropType: 'Rice',
-          soilData: { ph: '6.5', moisture: '48', organicMatter: '2.8', nitrogen: '110', phosphorus: '22', potassium: '170', salinity: '0.9', temperature: '24' }
-        },
-        {
-          id: 'field_3',
-          distance: '0.9km', 
-          cropType: 'Corn',
-          soilData: { ph: '6.9', moisture: '45', organicMatter: '3.3', nitrogen: '135', phosphorus: '30', potassium: '195', salinity: '0.6', temperature: '22' }
+    try {
+      const systemPrompt = `Generate realistic soil data for agricultural fields within 1km of coordinates ${lat}, ${lng}. Return ONLY valid JSON:
+{
+  "nearbyFields": [
+    {
+      "id": "field_1",
+      "distance": "0.3km",
+      "cropType": "wheat/rice/corn/etc",
+      "soilData": {
+        "ph": "6.5",
+        "moisture": "45",
+        "organicMatter": "3.2",
+        "nitrogen": "120",
+        "phosphorus": "25",
+        "potassium": "180",
+        "salinity": "0.8",
+        "temperature": "22"
+      }
+    }
+  ],
+  "averageData": {
+    "ph": "average pH",
+    "moisture": "average moisture",
+    "organicMatter": "average organic matter",
+    "nitrogen": "average nitrogen",
+    "phosphorus": "average phosphorus", 
+    "potassium": "average potassium",
+    "salinity": "average salinity",
+    "temperature": "average temperature"
+  }
+}`;
+
+      const response = await FarmerAI.callAPI(
+        `Generate soil data for 3-5 agricultural fields within 1km radius of location ${lat}, ${lng}. Include realistic values based on regional soil characteristics.`,
+        systemPrompt
+      );
+
+      const parsed = FarmerAI.parseJSON(response);
+      if (parsed && parsed.nearbyFields) {
+        setNearbyFields(parsed.nearbyFields);
+        if (parsed.averageData) {
+          setSoilData(prev => ({ ...prev, ...parsed.averageData }));
         }
-      ];
-      
-      setNearbyFields(fallbackFields);
-      
-      // Set average data
-      const avgData = {
-        ph: '6.7',
-        moisture: '45',
-        organicMatter: '3.1',
-        nitrogen: '123',
-        phosphorus: '27',
-        potassium: '183',
-        salinity: '0.7',
-        temperature: '23'
-      };
-      
-      setSoilData(prev => ({ ...prev, ...avgData }));
+      }
+    } catch (error) {
+      console.error('Error fetching nearby field data:', error);
+    } finally {
       setIsLoadingNearbyData(false);
-    }, 1000); // Simulate loading time
+    }
   };
 
   const analyzeSoilWithAI = async () => {
@@ -166,12 +174,12 @@ const GeoSoilAnalysis = () => {
   }
 }`;
         
-        const response = await BaseAI.callAPI(
+        const response = await FarmerAI.callAPI(
           `Analyze this soil test report and extract soil parameters. Required fields: ph, moisture, organicMatter, nitrogen, phosphorus, potassium, salinity, temperature. Document: ${file.type.includes('image') ? fileData : 'Text content: ' + fileData}`,
           systemPrompt
         );
         
-        const parsed = BaseAI.parseJSON(response);
+        const parsed = FarmerAI.parseJSON(response);
         if (parsed && parsed.extractedData && parsed.validation) {
           const validData = Object.fromEntries(
             Object.entries(parsed.extractedData).filter(([_, value]) => value && value !== "null" && value !== "")
@@ -276,12 +284,12 @@ const GeoSoilAnalysis = () => {
   "temperature": "soil temperature if mentioned"
 }`;
       
-      const extractedData = await BaseAI.callAPI(
+      const extractedData = await FarmerAI.callAPI(
         `Extract soil information from this voice input: "${transcript}"`,
         systemPrompt
       );
       
-      const parsed = BaseAI.parseJSON(extractedData);
+      const parsed = FarmerAI.parseJSON(extractedData);
       if (parsed) {
         setSoilData(prev => ({
           ...prev,
@@ -463,19 +471,19 @@ const GeoSoilAnalysis = () => {
               </button>
 
               <button
-                onClick={() => location.lat ? fetchNearbyFieldData(location.lat, location.lng) : getCurrentLocation()}
-                disabled={isGettingLocation || isAnalyzing || isProcessingDoc || isListening || isLoadingNearbyData}
+                onClick={getCurrentLocation}
+                disabled={isGettingLocation || isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
-                {isGettingLocation || isLoadingNearbyData ? (
+                {isGettingLocation ? (
                   <>
                     <Loader className="w-5 h-5 animate-spin" />
-                    <span>{isGettingLocation ? 'Getting...' : 'Loading...'}</span>
+                    <span>Getting...</span>
                   </>
                 ) : (
                   <>
                     <Target className="w-5 h-5" />
-                    <span>{location.lat ? 'Load Fields' : 'Get Location'}</span>
+                    <span>Get Location</span>
                   </>
                 )}
               </button>
