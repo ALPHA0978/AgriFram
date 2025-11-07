@@ -175,26 +175,28 @@ const CropHealth = () => {
       reader.onload = async (e) => {
         const fileData = e.target.result;
         
-        const systemPrompt = `Analyze this document and extract crop health data. Return ONLY valid JSON:
+        const systemPrompt = `Extract crop health data from this document. Check for ALL these fields and return ONLY valid JSON:
 {
   "extractedData": {
-    "cropType": "extracted crop name or null",
-    "variety": "crop variety or null",
-    "plantingDate": "YYYY-MM-DD format or null",
-    "fieldSize": "field size or null",
-    "growthStage": "growth stage or null",
-    "symptoms": "symptoms or null",
-    "location": "location or null",
-    "weatherConditions": "weather or null",
-    "irrigationMethod": "irrigation or null",
-    "fertilizer": "fertilizer or null",
-    "pesticide": "pesticide or null"
+    "cropType": "crop name (e.g., Wheat, Rice, Tomato) or null",
+    "variety": "crop variety (e.g., Basmati, IR64, Cherry) or null",
+    "plantingDate": "planting date in YYYY-MM-DD format or null",
+    "fieldSize": "field size in acres or null",
+    "growthStage": "growth stage (Seedling/Vegetative/Flowering/Fruiting/Maturity) or null",
+    "symptoms": "observed symptoms description or null",
+    "location": "farm location (City, State) or null",
+    "weatherConditions": "weather conditions (rainfall, temperature) or null",
+    "irrigationMethod": "irrigation method (Drip/Sprinkler/Flood/Rainfed) or null",
+    "fertilizer": "fertilizer used (e.g., NPK 10:26:26, Urea) or null",
+    "pesticide": "pesticide applied (e.g., Neem oil, Chlorpyrifos) or null"
   },
   "validation": {
     "isComplete": true/false,
-    "missingFields": ["list of missing required fields"],
+    "extractedCount": "number of fields extracted",
+    "totalFields": 11,
+    "missingFields": ["list of missing field names"],
     "confidence": "High/Medium/Low",
-    "message": "AI assessment of document completeness"
+    "message": "Document analysis result"
   }
 }`;
         
@@ -218,13 +220,18 @@ const CropHealth = () => {
             message: parsed.validation.message,
             missingFields: parsed.validation.missingFields || [],
             confidence: parsed.validation.confidence,
-            extractedFields: Object.keys(validData)
+            extractedFields: Object.keys(validData),
+            extractedCount: parsed.validation.extractedCount || Object.keys(validData).length,
+            totalFields: parsed.validation.totalFields || 11
           });
         } else {
           setDocValidation({
             isValid: false,
-            message: 'Could not extract crop data from this document. Please ensure it contains crop health information.',
-            missingFields: ['cropType', 'plantingDate', 'fieldSize', 'symptoms', 'location']
+            message: 'Document content appears to be non-text or unreadable, containing no extractable agricultural data.',
+            missingFields: ['cropType', 'variety', 'plantingDate', 'fieldSize', 'growthStage', 'symptoms', 'location', 'weatherConditions', 'irrigationMethod', 'fertilizer', 'pesticide'],
+            extractedCount: 0,
+            totalFields: 11,
+            confidence: 'Low'
           });
         }
       };
@@ -673,9 +680,12 @@ const CropHealth = () => {
                     )}
                     
                     {docValidation.confidence && (
-                      <p className="text-xs mt-2 opacity-75">
-                        Confidence: {docValidation.confidence}
-                      </p>
+                      <div className="mt-3 text-xs opacity-75">
+                        <p>Confidence: {docValidation.confidence}</p>
+                        {docValidation.extractedCount !== undefined && (
+                          <p>Fields Found: {docValidation.extractedCount}/{docValidation.totalFields || 11}</p>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

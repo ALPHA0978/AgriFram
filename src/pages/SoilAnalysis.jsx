@@ -62,36 +62,44 @@ const SoilAnalysis = () => {
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const imageData = e.target.result;
+        const fileData = e.target.result;
         
-        const systemPrompt = `Extract soil test data from this document/report. Return ONLY valid JSON:
+        const systemPrompt = `Extract soil test data from this document. Check for ALL these fields and return ONLY valid JSON:
 {
-  "ph": "pH value",
-  "moisture": "moisture percentage",
-  "organicMatter": "organic matter percentage",
-  "nitrogen": "nitrogen ppm",
-  "phosphorus": "phosphorus ppm",
-  "potassium": "potassium ppm",
-  "salinity": "salinity dS/m",
-  "temperature": "soil temperature"
+  "extractedData": {
+    "ph": "pH value or null",
+    "moisture": "moisture percentage or null",
+    "organicMatter": "organic matter percentage or null",
+    "nitrogen": "nitrogen ppm or null",
+    "phosphorus": "phosphorus ppm or null",
+    "potassium": "potassium ppm or null",
+    "salinity": "salinity dS/m or null",
+    "temperature": "soil temperature °C or null"
+  },
+  "validation": {
+    "isComplete": true/false,
+    "extractedCount": "number of fields extracted",
+    "totalFields": 8,
+    "missingFields": ["list of missing field names"],
+    "confidence": "High/Medium/Low",
+    "message": "Document analysis result"
+  }
 }`;
         
         const extractedData = await FarmerAI.callAPI(
-          `Analyze this soil test report and extract all soil parameters. Image: ${imageData}`,
+          `Analyze this soil test report and extract all soil parameters. Document content: ${fileData}`,
           systemPrompt
         );
         
         const parsed = FarmerAI.parseJSON(extractedData);
-        if (parsed) {
-          setSoilData(prev => ({
-            ...prev,
-            ...Object.fromEntries(
-              Object.entries(parsed).filter(([_, value]) => value && value !== "")
-            )
-          }));
+        if (parsed && parsed.extractedData) {
+          const validData = Object.fromEntries(
+            Object.entries(parsed.extractedData).filter(([_, value]) => value && value !== "null" && value !== "")
+          );
+          setSoilData(prev => ({ ...prev, ...validData }));
         }
       };
-      reader.readAsDataURL(file);
+      reader.readAsText(file);
     } catch (error) {
       console.error('Document processing error:', error);
       alert('Failed to process soil report. Please try again.');

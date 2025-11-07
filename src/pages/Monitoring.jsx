@@ -60,33 +60,41 @@ const Monitoring = () => {
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const imageData = e.target.result;
+        const fileData = e.target.result;
         
-        const systemPrompt = `Extract IoT sensor data from this document/report. Return ONLY valid JSON:
+        const systemPrompt = `Extract IoT sensor data from this document. Check for ALL these fields and return ONLY valid JSON:
 {
-  "soilMoisture": "soil moisture percentage",
-  "airTemperature": "air temperature in celsius",
-  "humidity": "humidity percentage",
-  "lightIntensity": "light intensity in lux",
-  "rainfall": "rainfall in mm"
+  "extractedData": {
+    "soilMoisture": "soil moisture percentage or null",
+    "airTemperature": "air temperature in celsius or null",
+    "humidity": "humidity percentage or null",
+    "lightIntensity": "light intensity in lux or null",
+    "rainfall": "rainfall in mm or null"
+  },
+  "validation": {
+    "isComplete": true/false,
+    "extractedCount": "number of fields extracted",
+    "totalFields": 5,
+    "missingFields": ["list of missing field names"],
+    "confidence": "High/Medium/Low",
+    "message": "Document analysis result"
+  }
 }`;
         
         const extractedData = await FarmerAI.callAPI(
-          `Analyze this IoT sensor report and extract all sensor readings. Image: ${imageData}`,
+          `Analyze this IoT sensor report and extract all sensor readings. Document content: ${fileData}`,
           systemPrompt
         );
         
         const parsed = FarmerAI.parseJSON(extractedData);
-        if (parsed) {
-          setSensorData(prev => ({
-            ...prev,
-            ...Object.fromEntries(
-              Object.entries(parsed).filter(([_, value]) => value && value !== "")
-            )
-          }));
+        if (parsed && parsed.extractedData) {
+          const validData = Object.fromEntries(
+            Object.entries(parsed.extractedData).filter(([_, value]) => value && value !== "null" && value !== "")
+          );
+          setSensorData(prev => ({ ...prev, ...validData }));
         }
       };
-      reader.readAsDataURL(file);
+      reader.readAsText(file);
     } catch (error) {
       console.error('Document processing error:', error);
       alert('Failed to process sensor report. Please try again.');
@@ -366,16 +374,33 @@ const Monitoring = () => {
                   <span>{uploadedDoc.name}</span>
                 </div>
                 {isProcessingDoc && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm text-purple-300">
-                      <span>Processing document...</span>
-                      <span>{Math.round(processingProgress)}%</span>
+                  <div className="flex items-center space-x-4">
+                    <div className="relative w-12 h-12">
+                      <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                        <path
+                          className="text-gray-600"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                          className="text-purple-500"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeDasharray={`${processingProgress}, 100`}
+                          strokeLinecap="round"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xs font-medium text-purple-300">{Math.round(processingProgress)}%</span>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-purple-500 h-2 rounded-full transition-all duration-300 ease-out"
-                        style={{ width: `${processingProgress}%` }}
-                      ></div>
+                    <div className="text-sm text-purple-300">
+                      <div className="font-medium">AI Processing Document...</div>
+                      <div className="text-xs opacity-75">Extracting sensor data</div>
                     </div>
                   </div>
                 )}
