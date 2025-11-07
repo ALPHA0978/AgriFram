@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Leaf, Beaker, Camera, Satellite, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const SustainableFarmingTool = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const modules = [
     
@@ -56,7 +58,7 @@ const SustainableFarmingTool = () => {
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>{t('common.back_home')}</span>
           </button>
         </div>
       </nav>
@@ -67,10 +69,10 @@ const SustainableFarmingTool = () => {
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
-            AI FARMING <br /> MODULES
+            {t('pages.farming_tool.title1')} <br /> {t('pages.farming_tool.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            Choose your AI-powered farming tool to optimize productivity and sustainability.
+            {t('pages.farming_tool.subtitle')}
           </p>
         </div>
 
@@ -110,8 +112,7 @@ const SustainableFarmingTool = () => {
         <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">
-              our contribution 
-              {/* Contributing to SIH 3.0 goal */}
+              {t('pages.farming_tool.our_contribution')}
             </h2>
             <p className="text-lg text-gray-300 mb-8 max-w-3xl mx-auto">
               Our AI-powered platform directly addresses global hunger by increasing agricultural productivity, 
@@ -137,7 +138,7 @@ const SustainableFarmingTool = () => {
 
       {/* Footer */}
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
+        <p>{t('footer.copy')}</p>
       </div>
     </div>
   );

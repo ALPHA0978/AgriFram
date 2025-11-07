@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, BarChart3, TrendingUp, Users, Activity, AlertTriangle, Heart, Brain, Stethoscope } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const MedicalAnalytics = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [stats, setStats] = useState({
     totalPatients: 1247,
     activeCases: 89,
@@ -78,7 +80,7 @@ const MedicalAnalytics = () => {
             className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-blue-500/30"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
+            <span>{t('common.back_dashboard')}</span>
           </button>
         </div>
       </nav>
@@ -88,10 +90,10 @@ const MedicalAnalytics = () => {
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 drop-shadow-lg">
-            MEDICAL <br /> ANALYTICS
+            {t('pages.medical_analytics.title1')} <br /> {t('pages.medical_analytics.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            Advanced health analytics and population insights for data-driven medical decisions.
+            {t('pages.medical_analytics.subtitle')}
           </p>
         </div>
 

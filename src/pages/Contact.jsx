@@ -1,9 +1,11 @@
 import { Mail, Phone, MapPin, ArrowLeft, Send } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Contact = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -85,7 +87,7 @@ const Contact = () => {
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>{t('common.back_home')}</span>
           </button>
         </div>
       </nav>
@@ -95,10 +97,10 @@ const Contact = () => {
         
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
-            GET IN <br /> TOUCH
+            {t('pages.contact.title1')} <br /> {t('pages.contact.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            Ready to revolutionize your farming? Contact our team of experts today.
+            {t('pages.contact.subtitle')}
           </p>
         </div>
 
@@ -109,28 +111,28 @@ const Contact = () => {
 
             <InfoCard 
               icon={<MapPin className="w-8 h-8 text-green-400" />}
-              title="Our Location"
+              title={t('pages.contact.our_location')}
               content="123 AgTech Plaza, Silicon Valley, CA 94025"
             />
             <InfoCard 
               icon={<Mail className="w-8 h-8 text-green-400" />}
-              title="Email Us"
+              title={t('pages.contact.email_us')}
               content="support@agrifarm-ai.com"
             />
             <InfoCard 
               icon={<Phone className="w-8 h-8 text-green-400" />}
-              title="Call Us"
+              title={t('pages.contact.call_us')}
               content="+1 (555) 123-4567"
             />
           </div>
 
           {/* Contact Form */}
           <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
-            <h3 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center">Send us a Message</h3>
+            <h3 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center">{t('pages.contact.send_us_message')}</h3>
             
             <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold mb-2 text-gray-300">Full Name</label>
+                <label htmlFor="name" className="block text-sm font-semibold mb-2 text-gray-300">{t('pages.contact.full_name')}</label>
                 <input
                   type="text"
                   id="name"
@@ -139,12 +141,12 @@ const Contact = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 text-white placeholder-gray-500 transition-all duration-300"
-                  placeholder="John Doe"
+                  placeholder={t('pages.contact.placeholders.name')}
                 />
               </div>
               
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold mb-2 text-gray-300">Email Address</label>
+                <label htmlFor="email" className="block text-sm font-semibold mb-2 text-gray-300">{t('pages.contact.email_address')}</label>
                 <input
                   type="email"
                   id="email"
@@ -153,12 +155,12 @@ const Contact = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 text-white placeholder-gray-500 transition-all duration-300"
-                  placeholder="johndoe@example.com"
+                  placeholder={t('pages.contact.placeholders.email')}
                 />
               </div>
 
               <div>
-                <label htmlFor="subject" className="block text-sm font-semibold mb-2 text-gray-300">Subject</label>
+                <label htmlFor="subject" className="block text-sm font-semibold mb-2 text-gray-300">{t('pages.contact.subject')}</label>
                 <select
                   id="subject"
                   name="subject"
@@ -177,7 +179,7 @@ const Contact = () => {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-semibold mb-2 text-gray-300">Message</label>
+                <label htmlFor="message" className="block text-sm font-semibold mb-2 text-gray-300">{t('pages.contact.message')}</label>
                 <textarea
                   id="message"
                   name="message"
@@ -186,7 +188,7 @@ const Contact = () => {
                   required
                   rows={6}
                   className="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 text-white placeholder-gray-500 resize-none transition-all duration-300"
-                  placeholder="Tell us how we can help you..."
+                  placeholder={t('pages.contact.placeholders.message')}
                 />
               </div>
 
@@ -195,7 +197,7 @@ const Contact = () => {
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center space-x-3 text-lg shadow-lg hover:shadow-green-500/30"
               >
                 <Send className="w-5 h-5" />
-                <span>Send Message</span>
+                <span>{t('common.send_message')}</span>
               </button>
             </form>
           </div>
@@ -203,7 +205,7 @@ const Contact = () => {
       </div>
       
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
+        <p>{t('footer.copy')}</p>
       </div>
     </div>
   );

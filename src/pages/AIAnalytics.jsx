@@ -1,8 +1,10 @@
 import { Brain, BarChart3, TrendingUp, Zap, ArrowLeft, Cpu, Database, Activity, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const AIAnalytics = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const GlassCard = ({ icon, title, description, children }) => (
     <div className="bg-gray-900/50 rounded-[40px] p-8 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-lg transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 relative group">
       <div className="bg-green-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6">
@@ -36,7 +38,7 @@ const AIAnalytics = () => {
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>{t('common.back_home')}</span>
           </button>
         </div>
       </nav>
@@ -45,10 +47,10 @@ const AIAnalytics = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
-            AI <br /> ANALYTICS
+            {t('pages.ai_analytics.title1')} <br /> {t('pages.ai_analytics.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Advanced machine learning algorithms powering intelligent farming decisions.
+            {t('pages.ai_analytics.subtitle')}
           </p>
         </div>
 
@@ -113,7 +115,7 @@ const AIAnalytics = () => {
         </div>
 
         <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-lg">
-          <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">AI Capabilities</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">{t('pages.ai_analytics.capabilities')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
               <h3 className="text-2xl font-bold mb-6 text-green-400">Computer Vision</h3>

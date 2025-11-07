@@ -1,0 +1,186 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "analysis": "Analysis",
+    "insights": "Insights",
+    "ai_analytics": "AI Analytics",
+    "contact": "Contact"
+  },
+  "common": {
+    "back_home": "Back to Home",
+    "back_dashboard": "Back to Dashboard",
+    "back_farming_tool": "Back to Farming Tool",
+    "send_message": "Send Message",
+    "upload_report": "Upload Report",
+    "processing": "Processing...",
+    "voice_input": "Voice Input",
+    "stop_voice": "Stop Voice",
+    "analyzing": "Analyzing...",
+    "analyze": "Analyze",
+    "logout": "Logout",
+    "launch": "Launch",
+    "recent_readings": "Recent Readings"
+  },
+  "hero": {
+    "title1": "SMART FARMING",
+    "title2": "SOLUTIONS",
+    "tagline": "Advanced AI solutions for agriculture and market intelligence - revolutionizing farming and medical diagnosis with cutting-edge technology.",
+    "cta_farming_ai": "Farming AI",
+    "cta_learn_more": "Learn More"
+  },
+  "features": {
+    "crop_disease": "Crop Disease",
+    "detection": "Detection",
+    "ai_powered": "AI-Powered",
+    "insights": "Insights",
+    "yield": "Yield",
+    "optimization": "Optimization",
+    "smart": "Smart",
+    "automation": "Automation"
+  },
+  "weather": {
+    "humidity": "Humidity",
+    "wind": "Wind",
+    "precipitation": "Precipitation",
+    "yield": "Yield"
+  },
+  "pages": {
+    "about": {
+      "title1": "ABOUT",
+      "title2": "AgriFARMAI",
+      "subtitle": "AI-powered mobile portal for farmers' disease diagnosis and reporting, contributing to SDG 2: Zero Hunger through enhanced agricultural productivity and food security.",
+      "expected_outcomes": "Expected Outcomes & SDG 2 Impact",
+      "disease_management": "Disease Management",
+      "food_security_impact": "Food Security Impact",
+      "ai_integration": "AI Integration & Community Impact",
+      "ai_technology": "AI Technology",
+      "community_benefits": "Community Benefits"
+    },
+    "ai_analytics": {
+      "title1": "AI",
+      "title2": "ANALYTICS",
+      "subtitle": "Advanced machine learning algorithms powering intelligent farming decisions.",
+      "capabilities": "AI Capabilities"
+    },
+    "analysis": {
+      "title1": "FARM",
+      "title2": "ANALYSIS",
+      "subtitle": "Comprehensive soil, crop, and environmental analysis for optimal farming decisions.",
+      "actionable_insights": "Actionable Insights"
+    },
+    "contact": {
+      "title1": "GET IN",
+      "title2": "TOUCH",
+      "subtitle": "Ready to revolutionize your farming? Contact our team of experts today.",
+      "our_location": "Our Location",
+      "email_us": "Email Us",
+      "call_us": "Call Us",
+      "send_us_message": "Send us a Message",
+      "full_name": "Full Name",
+      "email_address": "Email Address",
+      "subject": "Subject",
+      "message": "Message",
+      "placeholders": {
+        "name": "John Doe",
+        "email": "johndoe@example.com",
+        "message": "Tell us how we can help you..."
+      }
+    },
+    "crop_health": {
+      "title1": "CROP",
+      "title2": "HEALTH",
+      "subtitle": "AI-powered crop disease detection and health monitoring system.",
+      "assessment": "Crop Health Assessment"
+    },
+    "insights": {
+      "title1": "SMART",
+      "title2": "INSIGHTS",
+      "subtitle": "Actionable intelligence and market insights to maximize your farming success.",
+      "active_alerts": "Active Alerts",
+      "market_intelligence": "Market Intelligence",
+      "ai_recommendations": "AI Recommendations",
+      "investment_returns": "Investment Returns",
+      "this_week": "This Week",
+      "next_month": "Next Month"
+    },
+    "login": {
+      "back_home": "Back to Home",
+      "welcome_back": "Welcome Back",
+      "join": "Join MedicalAI",
+      "access_dashboard": "Access your medical AI dashboard",
+      "create_account_subtitle": "Create your medical professional account",
+      "sign_in": "Sign In",
+      "create_account": "Create Account",
+      "switch_to_signup": "Don't have an account? Sign up",
+      "switch_to_login": "Already have an account? Sign in",
+      "demo_mode": "Demo Mode:",
+      "demo_text": "Use any email and password to access the system",
+      "full_name": "Full Name",
+      "email": "Email Address",
+      "password": "Password"
+    },
+    "medical_analytics": {
+      "title1": "MEDICAL",
+      "title2": "ANALYTICS",
+      "subtitle": "Advanced health analytics and population insights for data-driven medical decisions.",
+      "back_dashboard": "Back to Dashboard"
+    },
+    "medical_dashboard": {
+      "title1": "MEDICAL AI",
+      "title2": "DASHBOARD",
+      "subtitle": "Advanced AI-powered medical analysis tools for healthcare professionals.",
+      "logout": "Logout",
+      "launch": "Launch"
+    },
+    "medical_diagnosis": {
+      "title1": "AI",
+      "title2": "DIAGNOSIS",
+      "subtitle": "Advanced symptom analysis with comprehensive medical insights and treatment recommendations.",
+      "symptom_analysis": "Symptom Analysis",
+      "analyze_symptoms": "Analyze Symptoms"
+    },
+    "medical_predictor": {
+      "title1": "HEALTH",
+      "title2": "PREDICTOR",
+      "subtitle": "AI-powered health outcome predictions and comprehensive risk assessment for proactive healthcare.",
+      "patient_information": "Patient Information"
+    },
+    "medical_vitals": {
+      "title1": "VITALS",
+      "title2": "MONITOR",
+      "subtitle": "Real-time vital signs monitoring with AI-powered analysis and health insights.",
+      "enter_vital_signs": "Enter Vital Signs",
+      "ai_analysis": "AI Analysis",
+      "enter_vitals_cta": "Enter vitals to get AI analysis"
+    },
+    "monitoring": {
+      "title1": "IOT",
+      "title2": "MONITORING",
+      "subtitle": "Real-time sensor data analysis for smart irrigation and farm optimization.",
+      "iot_sensor_data": "IoT Sensor Data"
+    },
+    "soil_analysis": {
+      "title1": "SOIL",
+      "title2": "ANALYSIS",
+      "subtitle": "AI-powered soil health assessment with comprehensive nutrient analysis.",
+      "soil_testing_data": "Soil Testing Data"
+    },
+    "farming_tool": {
+      "title1": "AI FARMING",
+      "title2": "MODULES",
+      "subtitle": "Choose your AI-powered farming tool to optimize productivity and sustainability.",
+      "our_contribution": "Our Contribution"
+    }
+  },
+  "footer": {
+    "quick_links": "Quick Links",
+    "ai_tools": "AI Tools",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "sdg2": "SDG 2 - Zero Hunger",
+    "copy": "© 2024 AgriFarmAI. All Rights Reserved.",
+    "copy_medical": "© 2024 MedicalAI. All Rights Reserved.",
+    "brand_desc": "Revolutionizing agriculture with AI-powered insights for soil health, crop monitoring, and sustainable farming practices."
+  }
+}

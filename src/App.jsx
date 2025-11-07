@@ -18,30 +18,36 @@ import MedicalVitals from './pages/MedicalVitals';
 import MedicalPredictor from './pages/MedicalPredictor';
 import MedicalAnalytics from './pages/MedicalAnalytics';
 import ProtectedRoute from './components/ProtectedRoute';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/ai-analytics" element={<AIAnalytics />} />
-          <Route path="/analysis" element={<Analysis />} />
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/farming-tool" element={<FarmingTool />} />
-          <Route path="/soil-analysis" element={<SoilAnalysis />} />
-          <Route path="/crop-health" element={<CropHealth />} />
-          <Route path="/monitoring" element={<Monitoring />} />
-          <Route path="/market-intel" element={<MarketIntel />} />
-          <Route path="/medical-dashboard" element={<ProtectedRoute><MedicalDashboard /></ProtectedRoute>} />
-          <Route path="/medical-diagnosis" element={<ProtectedRoute><MedicalDiagnosis /></ProtectedRoute>} />
-          <Route path="/medical-vitals" element={<ProtectedRoute><MedicalVitals /></ProtectedRoute>} />
-          <Route path="/medical-predictor" element={<ProtectedRoute><MedicalPredictor /></ProtectedRoute>} />
-          <Route path="/medical-analytics" element={<ProtectedRoute><MedicalAnalytics /></ProtectedRoute>} />
-        </Routes>
+        <div>
+          <div className="fixed top-3 right-3 z-[9999]">
+            <LanguageSwitcher />
+          </div>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/ai-analytics" element={<AIAnalytics />} />
+            <Route path="/analysis" element={<Analysis />} />
+            <Route path="/insights" element={<Insights />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/farming-tool" element={<FarmingTool />} />
+            <Route path="/soil-analysis" element={<SoilAnalysis />} />
+            <Route path="/crop-health" element={<CropHealth />} />
+            <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/market-intel" element={<MarketIntel />} />
+            <Route path="/medical-dashboard" element={<ProtectedRoute><MedicalDashboard /></ProtectedRoute>} />
+            <Route path="/medical-diagnosis" element={<ProtectedRoute><MedicalDiagnosis /></ProtectedRoute>} />
+            <Route path="/medical-vitals" element={<ProtectedRoute><MedicalVitals /></ProtectedRoute>} />
+            <Route path="/medical-predictor" element={<ProtectedRoute><MedicalPredictor /></ProtectedRoute>} />
+            <Route path="/medical-analytics" element={<ProtectedRoute><MedicalAnalytics /></ProtectedRoute>} />
+          </Routes>
+        </div>
       </Router>
     </AuthProvider>
   );

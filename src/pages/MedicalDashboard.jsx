@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { ArrowLeft, Stethoscope, Activity, Brain, TrendingUp, Heart, Users, LogOut } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const MedicalDashboard = () => {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const { t } = useTranslation()
 
   const handleLogout = () => {
     logout()
@@ -71,7 +73,7 @@ const MedicalDashboard = () => {
               className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-red-500/30"
             >
               <LogOut className="w-4 h-4" />
-              <span>Logout</span>
+              <span>{t('common.logout')}</span>
             </button>
           </div>
         </div>
@@ -83,10 +85,10 @@ const MedicalDashboard = () => {
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-600 drop-shadow-lg">
-            MEDICAL AI <br /> DASHBOARD
+            {t('pages.medical_dashboard.title1')} <br /> {t('pages.medical_dashboard.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            Advanced AI-powered medical analysis tools for healthcare professionals.
+            {t('pages.medical_dashboard.subtitle')}
           </p>
         </div>
 
@@ -116,7 +118,7 @@ const MedicalDashboard = () => {
                 </div>
               </div>
               <button className="w-full bg-teal-500 hover:bg-teal-600 text-white font-medium rounded-full px-4 py-2 text-sm transition-all duration-300 transform group-hover:scale-105 shadow-lg hover:shadow-teal-500/30">
-                Launch {module.title}
+                {t('common.launch')} {module.title}
               </button>
             </div>
           ))}
@@ -152,7 +154,7 @@ const MedicalDashboard = () => {
 
       {/* Footer */}
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 MedicalAI. All Rights Reserved.</p>
+        <p>{t('footer.copy_medical')}</p>
       </div>
     </div>
   )

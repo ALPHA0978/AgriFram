@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Brain, AlertTriangle, Target, Activity, Calendar, Loader, TrendingUp } from 'lucide-react'
 import { MedicalAI } from '../services/medicalAI'
+import { useTranslation } from 'react-i18next'
 
 const MedicalPredictor = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [patientData, setPatientData] = useState({
     age: '',
     gender: '',
@@ -86,7 +88,7 @@ const MedicalPredictor = () => {
             className="flex items-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/30"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
+            <span>{t('common.back_dashboard')}</span>
           </button>
         </div>
       </nav>
@@ -96,10 +98,10 @@ const MedicalPredictor = () => {
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600 drop-shadow-lg">
-            HEALTH <br /> PREDICTOR
+            {t('pages.medical_predictor.title1')} <br /> {t('pages.medical_predictor.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            AI-powered health outcome predictions and comprehensive risk assessment for proactive healthcare.
+            {t('pages.medical_predictor.subtitle')}
           </p>
         </div>
 
@@ -111,7 +113,7 @@ const MedicalPredictor = () => {
               <div className="bg-purple-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6">
                 <Brain className="w-8 h-8 text-purple-400" />
               </div>
-              <h2 className="text-2xl font-semibold text-white mb-6">Patient Information</h2>
+              <h2 className="text-2xl font-semibold text-white mb-6">{t('pages.medical_predictor.patient_information')}</h2>
               
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>

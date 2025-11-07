@@ -1,8 +1,10 @@
 import { TrendingUp, DollarSign, Calendar, ArrowLeft, AlertTriangle, CheckCircle, Clock, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Insights = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   // Reusable component for the glassmorphic cards
   const GlassCard = ({ children, extraClasses = '' }) => (
     <div className={`bg-gray-900/50 rounded-[40px] p-8 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-lg transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 relative group ${extraClasses}`}>
@@ -30,7 +32,7 @@ const Insights = () => {
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>{t('common.back_home')}</span>
           </button>
         </div>
       </nav>
@@ -39,10 +41,10 @@ const Insights = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
-            SMART <br /> INSIGHTS
+            {t('pages.insights.title1')} <br /> {t('pages.insights.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Actionable intelligence and market insights to maximize your farming success.
+            {t('pages.insights.subtitle')}
           </p>
         </div>
 
@@ -86,7 +88,7 @@ const Insights = () => {
           <GlassCard>
             <h3 className="text-2xl font-bold mb-4 flex items-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
               <AlertTriangle className="w-6 h-6 mr-2" />
-              Active Alerts
+              {t('pages.insights.active_alerts')}
             </h3>
             <div className="space-y-4">
               <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-xl p-4">
@@ -108,7 +110,7 @@ const Insights = () => {
           </GlassCard>
 
           <GlassCard>
-            <h3 className="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">Market Intelligence</h3>
+            <h3 className="text-2xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">{t('pages.insights.market_intelligence')}</h3>
             <div className="space-y-4">
               <div className="border-b border-gray-700 pb-4">
                 <div className="flex justify-between items-center mb-2">
@@ -141,10 +143,10 @@ const Insights = () => {
 
         {/* AI Recommendations */}
         <GlassCard extraClasses="mb-16">
-          <h2 className="text-3xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">AI Recommendations</h2>
+          <h2 className="text-3xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">{t('pages.insights.ai_recommendations')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4 text-green-400">This Week</h3>
+              <h3 className="text-xl font-bold mb-4 text-green-400">{t('pages.insights.this_week')}</h3>
               <ul className="space-y-3 text-gray-300">
                 <li className="flex items-start space-x-3">
                   <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
@@ -161,7 +163,7 @@ const Insights = () => {
               </ul>
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-4 text-yellow-400">Next Month</h3>
+              <h3 className="text-xl font-bold mb-4 text-yellow-400">{t('pages.insights.next_month')}</h3>
               <ul className="space-y-3 text-gray-300">
                 <li className="flex items-start space-x-3">
                   <Clock className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
@@ -182,7 +184,7 @@ const Insights = () => {
 
         {/* ROI Calculator */}
         <GlassCard>
-          <h2 className="text-3xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">Investment Returns</h2>
+          <h2 className="text-3xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">{t('pages.insights.investment_returns')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-5xl font-black text-green-400 mb-2">$12,500</div>
@@ -201,7 +203,7 @@ const Insights = () => {
       </div>
 
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
+        <p>{t('footer.copy')}</p>
       </div>
     </div>
   );
