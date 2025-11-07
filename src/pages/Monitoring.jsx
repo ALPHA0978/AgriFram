@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Satellite, BarChart3, Droplets, Thermometer, AlertTriangle, CheckCircle, Target, TrendingUp, Loader, Upload, FileText } from 'lucide-react';
+import { ArrowLeft, Satellite, BarChart3, Droplets, Thermometer, AlertTriangle, CheckCircle, Target, TrendingUp, Loader, Upload, FileText, Mic, MicOff } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 
 const Monitoring = () => {
@@ -16,7 +16,10 @@ const Monitoring = () => {
   const [monitoringResults, setMonitoringResults] = useState(null);
   const [uploadedDoc, setUploadedDoc] = useState(null);
   const [isProcessingDoc, setIsProcessingDoc] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const analyzeMonitoringData = async () => {
     setIsAnalyzing(true);
@@ -80,6 +83,87 @@ const Monitoring = () => {
       alert('Failed to process sensor report. Please try again.');
     } finally {
       setIsProcessingDoc(false);
+    }
+  };
+
+  const startVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceTranscript('');
+    };
+    
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setVoiceTranscript(transcript);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+      if (voiceTranscript.trim()) {
+        processVoiceInput(voiceTranscript);
+      }
+    };
+    
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      alert('Voice recognition error. Please try again.');
+    };
+    
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopVoiceInput = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  const processVoiceInput = async (transcript) => {
+    try {
+      const systemPrompt = `Extract IoT sensor data from this voice input. Return ONLY valid JSON:
+{
+  "soilMoisture": "soil moisture percentage if mentioned",
+  "airTemperature": "air temperature if mentioned",
+  "humidity": "humidity percentage if mentioned",
+  "lightIntensity": "light intensity if mentioned",
+  "rainfall": "rainfall amount if mentioned"
+}`;
+      
+      const extractedData = await FarmerAI.callAPI(
+        `Extract sensor information from this voice input: "${transcript}"`,
+        systemPrompt
+      );
+      
+      const parsed = FarmerAI.parseJSON(extractedData);
+      if (parsed) {
+        setSensorData(prev => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.entries(parsed).filter(([_, value]) => value && value !== "")
+          )
+        }));
+      }
+    } catch (error) {
+      console.error('Voice processing error:', error);
+      alert('Failed to process voice input. Please try again.');
     }
   };
 
@@ -185,10 +269,10 @@ const Monitoring = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isAnalyzing || isProcessingDoc}
+                disabled={isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isProcessingDoc ? (
@@ -199,13 +283,34 @@ const Monitoring = () => {
                 ) : (
                   <>
                     <Upload className="w-5 h-5" />
-                    <span>Upload Sensor Report</span>
+                    <span>Upload Report</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={isListening ? stopVoiceInput : startVoiceInput}
+                disabled={isAnalyzing || isProcessingDoc}
+                className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${
+                  isListening 
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                    : 'bg-orange-500 hover:bg-orange-600'
+                } text-white disabled:bg-gray-600 disabled:text-gray-400`}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="w-5 h-5" />
+                    <span>Stop Voice</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-5 h-5" />
+                    <span>Voice Input</span>
                   </>
                 )}
               </button>
               <button
                 onClick={analyzeMonitoringData}
-                disabled={!sensorData.soilMoisture || isAnalyzing || isProcessingDoc}
+                disabled={!sensorData.soilMoisture || isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isAnalyzing ? (
@@ -221,6 +326,17 @@ const Monitoring = () => {
                 )}
               </button>
             </div>
+            {isListening && (
+              <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 text-orange-400 mb-2">
+                  <Mic className="w-5 h-5 animate-pulse" />
+                  <span className="font-medium">Listening for sensor data... Speak now</span>
+                </div>
+                {voiceTranscript && (
+                  <p className="text-gray-300 text-sm italic">"{voiceTranscript}"</p>
+                )}
+              </div>
+            )}
             <input
               ref={fileInputRef}
               type="file"

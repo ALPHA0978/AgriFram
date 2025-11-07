@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Beaker, BarChart3, DollarSign, Target, CheckCircle, Zap, Loader, AlertTriangle, Upload, FileText } from 'lucide-react';
+import { ArrowLeft, Beaker, BarChart3, DollarSign, Target, CheckCircle, Zap, Loader, AlertTriangle, Upload, FileText, Mic, MicOff } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 
 const SoilAnalysis = () => {
@@ -19,7 +19,10 @@ const SoilAnalysis = () => {
   const [soilAnalysis, setSoilAnalysis] = useState(null);
   const [uploadedDoc, setUploadedDoc] = useState(null);
   const [isProcessingDoc, setIsProcessingDoc] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const analyzeSoilWithAI = async () => {
     setIsAnalyzing(true);
@@ -88,6 +91,90 @@ const SoilAnalysis = () => {
     }
   };
 
+  const startVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceTranscript('');
+    };
+    
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setVoiceTranscript(transcript);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+      if (voiceTranscript.trim()) {
+        processVoiceInput(voiceTranscript);
+      }
+    };
+    
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      alert('Voice recognition error. Please try again.');
+    };
+    
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopVoiceInput = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  const processVoiceInput = async (transcript) => {
+    try {
+      const systemPrompt = `Extract soil test data from this voice input. Return ONLY valid JSON:
+{
+  "ph": "pH value if mentioned",
+  "moisture": "moisture percentage if mentioned",
+  "organicMatter": "organic matter if mentioned",
+  "nitrogen": "nitrogen level if mentioned",
+  "phosphorus": "phosphorus level if mentioned",
+  "potassium": "potassium level if mentioned",
+  "salinity": "salinity if mentioned",
+  "temperature": "soil temperature if mentioned"
+}`;
+      
+      const extractedData = await FarmerAI.callAPI(
+        `Extract soil information from this voice input: "${transcript}"`,
+        systemPrompt
+      );
+      
+      const parsed = FarmerAI.parseJSON(extractedData);
+      if (parsed) {
+        setSoilData(prev => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.entries(parsed).filter(([_, value]) => value && value !== "")
+          )
+        }));
+      }
+    } catch (error) {
+      console.error('Voice processing error:', error);
+      alert('Failed to process voice input. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-inter relative overflow-hidden">
       
@@ -148,10 +235,10 @@ const SoilAnalysis = () => {
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isAnalyzing || isProcessingDoc}
+                disabled={isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/30 disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 {isProcessingDoc ? (
@@ -162,13 +249,34 @@ const SoilAnalysis = () => {
                 ) : (
                   <>
                     <Upload className="w-5 h-5" />
-                    <span>Upload Soil Report</span>
+                    <span>Upload Report</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={isListening ? stopVoiceInput : startVoiceInput}
+                disabled={isAnalyzing || isProcessingDoc}
+                className={`flex items-center justify-center space-x-2 py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                  isListening 
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-red-500/30' 
+                    : 'bg-orange-500 hover:bg-orange-600 shadow-orange-500/30'
+                } text-white disabled:bg-gray-600 disabled:cursor-not-allowed`}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="w-5 h-5" />
+                    <span>Stop Voice</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-5 h-5" />
+                    <span>Voice Input</span>
                   </>
                 )}
               </button>
               <button
                 onClick={analyzeSoilWithAI}
-                disabled={!soilData.ph || isAnalyzing || isProcessingDoc}
+                disabled={!soilData.ph || isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30 disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 {isAnalyzing ? (
@@ -184,6 +292,17 @@ const SoilAnalysis = () => {
                 )}
               </button>
             </div>
+            {isListening && (
+              <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 text-orange-400 mb-2">
+                  <Mic className="w-5 h-5 animate-pulse" />
+                  <span className="font-medium">Listening for soil data... Speak now</span>
+                </div>
+                {voiceTranscript && (
+                  <p className="text-gray-300 text-sm italic">"{voiceTranscript}"</p>
+                )}
+              </div>
+            )}
             <input
               ref={fileInputRef}
               type="file"

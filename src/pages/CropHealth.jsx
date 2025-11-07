@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText } from 'lucide-react';
+import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText, Mic, MicOff } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 import CustomDropdown from '../components/CustomDropdown';
 
@@ -26,9 +26,13 @@ const CropHealth = () => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [uploadedDoc, setUploadedDoc] = useState(null);
   const [isProcessingDoc, setIsProcessingDoc] = useState(false);
+  const [docValidation, setDocValidation] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const analyzeCropWithAI = async () => {
     setIsAnalyzing(true);
@@ -142,47 +146,179 @@ const CropHealth = () => {
 
   const processDocument = async (file) => {
     setIsProcessingDoc(true);
+    setDocValidation(null);
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf', 'text/plain'];
+    if (!validTypes.includes(file.type)) {
+      setDocValidation({
+        isValid: false,
+        message: 'Invalid file type. Please upload JPG, PNG, PDF, or TXT files only.',
+        missingFields: []
+      });
+      setIsProcessingDoc(false);
+      return;
+    }
+
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const imageData = e.target.result;
+        const fileData = e.target.result;
         
-        const systemPrompt = `Extract crop health data from this document/image. Return ONLY valid JSON:
+        const systemPrompt = `Analyze this document and extract crop health data. Return ONLY valid JSON:
 {
-  "cropType": "extracted crop name",
-  "variety": "crop variety if mentioned",
-  "plantingDate": "YYYY-MM-DD format if found",
-  "fieldSize": "field size in acres",
-  "growthStage": "current growth stage",
-  "symptoms": "observed symptoms or issues",
-  "location": "farm location",
-  "weatherConditions": "weather info",
-  "irrigationMethod": "irrigation type",
-  "fertilizer": "fertilizers used",
-  "pesticide": "pesticides applied"
+  "extractedData": {
+    "cropType": "extracted crop name or null",
+    "variety": "crop variety or null",
+    "plantingDate": "YYYY-MM-DD format or null",
+    "fieldSize": "field size or null",
+    "growthStage": "growth stage or null",
+    "symptoms": "symptoms or null",
+    "location": "location or null",
+    "weatherConditions": "weather or null",
+    "irrigationMethod": "irrigation or null",
+    "fertilizer": "fertilizer or null",
+    "pesticide": "pesticide or null"
+  },
+  "validation": {
+    "isComplete": true/false,
+    "missingFields": ["list of missing required fields"],
+    "confidence": "High/Medium/Low",
+    "message": "AI assessment of document completeness"
+  }
 }`;
         
-        const extractedData = await FarmerAI.callAPI(
-          `Analyze this crop report/document and extract all relevant crop health information. Image: ${imageData}`,
+        const response = await FarmerAI.callAPI(
+          `Analyze this crop document for completeness. Required fields: cropType, plantingDate, fieldSize, symptoms, location. Document: ${file.type.includes('image') ? fileData : 'Text content: ' + fileData}`,
           systemPrompt
         );
         
-        const parsed = FarmerAI.parseJSON(extractedData);
-        if (parsed) {
-          setCropData(prev => ({
-            ...prev,
-            ...Object.fromEntries(
-              Object.entries(parsed).filter(([_, value]) => value && value !== "")
-            )
-          }));
+        const parsed = FarmerAI.parseJSON(response);
+        if (parsed && parsed.extractedData && parsed.validation) {
+          // Update form data with extracted information
+          const validData = Object.fromEntries(
+            Object.entries(parsed.extractedData).filter(([_, value]) => value && value !== "null" && value !== "")
+          );
+          
+          setCropData(prev => ({ ...prev, ...validData }));
+          
+          // Set validation results
+          setDocValidation({
+            isValid: parsed.validation.isComplete,
+            message: parsed.validation.message,
+            missingFields: parsed.validation.missingFields || [],
+            confidence: parsed.validation.confidence,
+            extractedFields: Object.keys(validData)
+          });
+        } else {
+          setDocValidation({
+            isValid: false,
+            message: 'Could not extract crop data from this document. Please ensure it contains crop health information.',
+            missingFields: ['cropType', 'plantingDate', 'fieldSize', 'symptoms', 'location']
+          });
         }
       };
-      reader.readAsDataURL(file);
+      
+      if (file.type.includes('image')) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.readAsText(file);
+      }
     } catch (error) {
       console.error('Document processing error:', error);
-      alert('Failed to process document. Please try again.');
+      setDocValidation({
+        isValid: false,
+        message: 'Failed to process document. Please try again with a different file.',
+        missingFields: []
+      });
     } finally {
       setIsProcessingDoc(false);
+    }
+  };
+
+  const startVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceTranscript('');
+    };
+    
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setVoiceTranscript(transcript);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+      if (voiceTranscript.trim()) {
+        processVoiceInput(voiceTranscript);
+      }
+    };
+    
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      alert('Voice recognition error. Please try again.');
+    };
+    
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopVoiceInput = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  const processVoiceInput = async (transcript) => {
+    try {
+      const systemPrompt = `Extract crop health data from this voice input. Return ONLY valid JSON:
+{
+  "cropType": "crop name if mentioned",
+  "variety": "variety if mentioned", 
+  "fieldSize": "field size if mentioned",
+  "symptoms": "symptoms described",
+  "location": "location if mentioned",
+  "weatherConditions": "weather if mentioned",
+  "growthStage": "growth stage if mentioned",
+  "irrigationMethod": "irrigation if mentioned",
+  "fertilizer": "fertilizer if mentioned",
+  "pesticide": "pesticide if mentioned"
+}`;
+      
+      const extractedData = await FarmerAI.callAPI(
+        `Extract crop information from this voice input: "${transcript}"`,
+        systemPrompt
+      );
+      
+      const parsed = FarmerAI.parseJSON(extractedData);
+      if (parsed) {
+        setCropData(prev => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.entries(parsed).filter(([_, value]) => value && value !== "")
+          )
+        }));
+      }
+    } catch (error) {
+      console.error('Voice processing error:', error);
+      alert('Failed to process voice input. Please try again.');
     }
   };
 
@@ -352,10 +488,10 @@ const CropHealth = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isAnalyzing || isProcessingDoc}
+                disabled={isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isProcessingDoc ? (
@@ -371,8 +507,29 @@ const CropHealth = () => {
                 )}
               </button>
               <button
-                onClick={startCamera}
+                onClick={isListening ? stopVoiceInput : startVoiceInput}
                 disabled={isAnalyzing || isProcessingDoc}
+                className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${
+                  isListening 
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                    : 'bg-orange-500 hover:bg-orange-600'
+                } text-white disabled:bg-gray-600 disabled:text-gray-400`}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="w-5 h-5" />
+                    <span>Stop Voice</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-5 h-5" />
+                    <span>Voice Input</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={startCamera}
+                disabled={isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 <Camera className="w-5 h-5" />
@@ -380,7 +537,7 @@ const CropHealth = () => {
               </button>
               <button
                 onClick={analyzeCropWithAI}
-                disabled={!cropData.cropType || isAnalyzing || isProcessingDoc}
+                disabled={!cropData.cropType || isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isAnalyzing ? (
@@ -396,10 +553,21 @@ const CropHealth = () => {
                 )}
               </button>
             </div>
+            {isListening && (
+              <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 text-orange-400 mb-2">
+                  <Mic className="w-5 h-5 animate-pulse" />
+                  <span className="font-medium">Listening... Speak now</span>
+                </div>
+                {voiceTranscript && (
+                  <p className="text-gray-300 text-sm italic">"{voiceTranscript}"</p>
+                )}
+              </div>
+            )}
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,.pdf,.doc,.docx"
+              accept=".pdf,.jpg,.jpeg,.png,.txt"
               onChange={handleDocumentUpload}
               className="hidden"
             />
@@ -409,6 +577,64 @@ const CropHealth = () => {
                   <FileText className="w-5 h-5" />
                   <span className="font-medium">Document Uploaded:</span>
                   <span>{uploadedDoc.name}</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Document Validation Results */}
+            {docValidation && (
+              <div className={`mt-4 p-4 rounded-xl border ${
+                docValidation.isValid 
+                  ? 'bg-green-900/20 border-green-500/30 text-green-300'
+                  : 'bg-red-900/20 border-red-500/30 text-red-300'
+              }`}>
+                <div className="flex items-start gap-3">
+                  {docValidation.isValid ? (
+                    <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-medium mb-2">
+                      {docValidation.isValid ? 'Document Validated Successfully' : 'Document Incomplete'}
+                    </p>
+                    <p className="text-sm opacity-90 mb-3">{docValidation.message}</p>
+                    
+                    {docValidation.extractedFields && docValidation.extractedFields.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium mb-1">Extracted Fields:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {docValidation.extractedFields.map(field => (
+                            <span key={field} className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded">
+                              {field}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {docValidation.missingFields && docValidation.missingFields.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-1">Missing Required Fields:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {docValidation.missingFields.map(field => (
+                            <span key={field} className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded">
+                              {field}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-xs mt-2 opacity-75">
+                          Please upload a complete document with all required crop health information.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {docValidation.confidence && (
+                      <p className="text-xs mt-2 opacity-75">
+                        Confidence: {docValidation.confidence}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

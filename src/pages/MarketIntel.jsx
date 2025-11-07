@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, BarChart3, DollarSign, Target, CheckCircle, Loader, AlertTriangle, Upload, FileText } from 'lucide-react';
+import { ArrowLeft, TrendingUp, BarChart3, DollarSign, Target, CheckCircle, Loader, AlertTriangle, Upload, FileText, Mic, MicOff } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 import { AlphaVantageService } from '../services/alphaVantageService';
 import CustomDropdown from '../components/CustomDropdown';
@@ -20,7 +20,10 @@ const MarketIntel = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [uploadedDoc, setUploadedDoc] = useState(null);
   const [isProcessingDoc, setIsProcessingDoc] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
   const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const analyzeMarketWithAI = async () => {
     setIsAnalyzing(true);
@@ -245,6 +248,88 @@ const MarketIntel = () => {
     }
   };
 
+  const startVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice recognition not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceTranscript('');
+    };
+    
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setVoiceTranscript(transcript);
+    };
+    
+    recognition.onend = () => {
+      setIsListening(false);
+      if (voiceTranscript.trim()) {
+        processVoiceInput(voiceTranscript);
+      }
+    };
+    
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      alert('Voice recognition error. Please try again.');
+    };
+    
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopVoiceInput = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  const processVoiceInput = async (transcript) => {
+    try {
+      const systemPrompt = `Extract farm and market data from this voice input. Return ONLY valid JSON:
+{
+  "location": "farm location if mentioned",
+  "farmSize": "farm size if mentioned",
+  "budget": "budget amount if mentioned",
+  "season": "season if mentioned (Kharif/Rabi/Zaid)",
+  "soilType": "soil type if mentioned",
+  "waterAvailability": "water source if mentioned"
+}`;
+      
+      const extractedData = await FarmerAI.callAPI(
+        `Extract market information from this voice input: "${transcript}"`,
+        systemPrompt
+      );
+      
+      const parsed = FarmerAI.parseJSON(extractedData);
+      if (parsed) {
+        setMarketData(prev => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.entries(parsed).filter(([_, value]) => value && value !== "")
+          )
+        }));
+      }
+    } catch (error) {
+      console.error('Voice processing error:', error);
+      alert('Failed to process voice input. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-inter relative overflow-hidden">
       
@@ -368,10 +453,10 @@ const MarketIntel = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isAnalyzing || isProcessingDoc}
+                disabled={isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isProcessingDoc ? (
@@ -382,13 +467,34 @@ const MarketIntel = () => {
                 ) : (
                   <>
                     <Upload className="w-5 h-5" />
-                    <span>Upload Farm Report</span>
+                    <span>Upload Report</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={isListening ? stopVoiceInput : startVoiceInput}
+                disabled={isAnalyzing || isProcessingDoc}
+                className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${
+                  isListening 
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                    : 'bg-orange-500 hover:bg-orange-600'
+                } text-white disabled:bg-gray-600 disabled:text-gray-400`}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="w-5 h-5" />
+                    <span>Stop Voice</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-5 h-5" />
+                    <span>Voice Input</span>
                   </>
                 )}
               </button>
               <button
                 onClick={analyzeMarketWithAI}
-                disabled={!marketData.location || isAnalyzing || isProcessingDoc}
+                disabled={!marketData.location || isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isAnalyzing ? (
@@ -404,6 +510,17 @@ const MarketIntel = () => {
                 )}
               </button>
             </div>
+            {isListening && (
+              <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 text-orange-400 mb-2">
+                  <Mic className="w-5 h-5 animate-pulse" />
+                  <span className="font-medium">Listening for farm data... Speak now</span>
+                </div>
+                {voiceTranscript && (
+                  <p className="text-gray-300 text-sm italic">"{voiceTranscript}"</p>
+                )}
+              </div>
+            )}
             <input
               ref={fileInputRef}
               type="file"
