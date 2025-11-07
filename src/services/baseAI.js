@@ -1,5 +1,66 @@
 export class BaseAI {
+  static lastCallTime = 0;
+  static minInterval = 10000; // 10 seconds between calls
+  static requestQueue = [];
+  static isProcessingQueue = false;
+  static dailyCallCount = 0;
+  static lastResetDate = new Date().toDateString();
+  static maxDailyCalls = 20; // Conservative limit
+
   static async callAPI(prompt, systemPrompt = '') {
+    // Check daily limit
+    const today = new Date().toDateString();
+    if (today !== this.lastResetDate) {
+      this.dailyCallCount = 0;
+      this.lastResetDate = today;
+    }
+
+    if (this.dailyCallCount >= this.maxDailyCalls) {
+      throw new Error('Daily API limit reached. Please try again tomorrow or use offline mode.');
+    }
+
+    return new Promise((resolve, reject) => {
+      this.requestQueue.push({ prompt, systemPrompt, resolve, reject });
+      this.processQueue();
+    });
+  }
+
+  static async processQueue() {
+    if (this.isProcessingQueue || this.requestQueue.length === 0) {
+      return;
+    }
+
+    this.isProcessingQueue = true;
+
+    // Always wait before first request if recent activity
+    const now = Date.now();
+    const timeSinceLastCall = now - this.lastCallTime;
+    if (timeSinceLastCall < this.minInterval) {
+      await new Promise(resolve => setTimeout(resolve, this.minInterval - timeSinceLastCall));
+    }
+
+    while (this.requestQueue.length > 0) {
+      const { prompt, systemPrompt, resolve, reject } = this.requestQueue.shift();
+      
+      try {
+        const result = await this.makeAPICall(prompt, systemPrompt);
+        this.dailyCallCount++;
+        this.lastCallTime = Date.now();
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+
+      // Wait between requests
+      if (this.requestQueue.length > 0) {
+        await new Promise(resolve => setTimeout(resolve, this.minInterval));
+      }
+    }
+
+    this.isProcessingQueue = false;
+  }
+
+  static async makeAPICall(prompt, systemPrompt = '') {
     const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
     
     if (!API_KEY) {
@@ -21,10 +82,14 @@ export class BaseAI {
         body: JSON.stringify({
           model: "nvidia/nemotron-nano-9b-v2:free",
           messages: messages,
-          max_tokens: 2000,
+          max_tokens: 1500,
           temperature: 0.1
         })
       });
+
+      if (response.status === 429) {
+        throw new Error('API rate limit exceeded. Please wait 10 minutes before trying again.');
+      }
 
       if (!response.ok) {
         throw new Error(`API call failed: ${response.status}`);
