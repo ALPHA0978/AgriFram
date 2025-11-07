@@ -27,6 +27,7 @@ const CropHealth = () => {
   const [uploadedDoc, setUploadedDoc] = useState(null);
   const [isProcessingDoc, setIsProcessingDoc] = useState(false);
   const [docValidation, setDocValidation] = useState(null);
+  const [processingProgress, setProcessingProgress] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const videoRef = useRef(null);
@@ -147,6 +148,15 @@ const CropHealth = () => {
   const processDocument = async (file) => {
     setIsProcessingDoc(true);
     setDocValidation(null);
+    setProcessingProgress(0);
+    
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setProcessingProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 15;
+      });
+    }, 300);
     
     // Validate file type - Only documents and text files
     const validTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -229,7 +239,12 @@ const CropHealth = () => {
         missingFields: []
       });
     } finally {
-      setIsProcessingDoc(false);
+      clearInterval(progressInterval);
+      setProcessingProgress(100);
+      setTimeout(() => {
+        setIsProcessingDoc(false);
+        setProcessingProgress(0);
+      }, 500);
     }
   };
 
@@ -570,11 +585,25 @@ const CropHealth = () => {
             />
             {uploadedDoc && (
               <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                <div className="flex items-center space-x-2 text-purple-400">
+                <div className="flex items-center space-x-2 text-purple-400 mb-3">
                   <FileText className="w-5 h-5" />
                   <span className="font-medium">Document Uploaded:</span>
                   <span>{uploadedDoc.name}</span>
                 </div>
+                {isProcessingDoc && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-purple-300">
+                      <span>Processing document...</span>
+                      <span>{Math.round(processingProgress)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-purple-500 h-2 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${processingProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
