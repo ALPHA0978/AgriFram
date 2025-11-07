@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingUp, BarChart3, DollarSign, Target, CheckCircle, Loader, AlertTriangle, Upload, FileText, Mic, MicOff } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
+import { BaseAI } from '../services/baseAI';
 import { AlphaVantageService } from '../services/alphaVantageService';
 import CustomDropdown from '../components/CustomDropdown';
 
@@ -23,6 +24,7 @@ const MarketIntel = () => {
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [docValidation, setDocValidation] = useState(null);
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -243,17 +245,37 @@ const MarketIntel = () => {
   }
 }`;
         
-        const extractedData = await FarmerAI.callAPI(
+        const extractedData = await BaseAI.callAPI(
           `Analyze this farm/market document and extract relevant information. Document content: ${fileData}`,
           systemPrompt
         );
         
-        const parsed = FarmerAI.parseJSON(extractedData);
-        if (parsed && parsed.extractedData) {
+        const parsed = BaseAI.parseJSON(extractedData);
+        if (parsed && parsed.extractedData && parsed.validation) {
           const validData = Object.fromEntries(
             Object.entries(parsed.extractedData).filter(([_, value]) => value && value !== "null" && value !== "")
           );
           setMarketData(prev => ({ ...prev, ...validData }));
+          
+          setDocValidation({
+            isValid: parsed.validation.isComplete,
+            message: parsed.validation.message,
+            extractedFields: Object.keys(validData),
+            missingFields: parsed.validation.missingFields || [],
+            confidence: parsed.validation.confidence,
+            extractedCount: parsed.validation.extractedCount,
+            totalFields: parsed.validation.totalFields
+          });
+        } else {
+          setDocValidation({
+            isValid: false,
+            message: "Could not extract market data from document. Please ensure it contains farm and market information.",
+            extractedFields: [],
+            missingFields: Object.keys(marketData),
+            confidence: "Low",
+            extractedCount: 0,
+            totalFields: 6
+          });
         }
       };
       reader.readAsText(file);
@@ -332,12 +354,12 @@ const MarketIntel = () => {
   "waterAvailability": "water source if mentioned"
 }`;
       
-      const extractedData = await FarmerAI.callAPI(
+      const extractedData = await BaseAI.callAPI(
         `Extract market information from this voice input: "${transcript}"`,
         systemPrompt
       );
       
-      const parsed = FarmerAI.parseJSON(extractedData);
+      const parsed = BaseAI.parseJSON(extractedData);
       if (parsed) {
         setMarketData(prev => ({
           ...prev,
@@ -588,6 +610,67 @@ const MarketIntel = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+            
+            {/* Document Validation Results */}
+            {docValidation && (
+              <div className={`mt-4 p-4 rounded-xl border ${
+                docValidation.isValid 
+                  ? 'bg-green-900/20 border-green-500/30 text-green-300'
+                  : 'bg-red-900/20 border-red-500/30 text-red-300'
+              }`}>
+                <div className="flex items-start gap-3">
+                  {docValidation.isValid ? (
+                    <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-medium mb-2">
+                      {docValidation.isValid ? 'Document Validated Successfully' : 'Document Incomplete'}
+                    </p>
+                    <p className="text-sm opacity-90 mb-3">{docValidation.message}</p>
+                    
+                    {docValidation.extractedFields && docValidation.extractedFields.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium mb-1">Extracted Fields:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {docValidation.extractedFields.map(field => (
+                            <span key={field} className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded">
+                              {field}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {docValidation.missingFields && docValidation.missingFields.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-1">Missing Required Fields:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {docValidation.missingFields.map(field => (
+                            <span key={field} className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded">
+                              {field}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-xs mt-2 opacity-75">
+                          Please upload a complete document with all required farm and market information.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {docValidation.confidence && (
+                      <div className="mt-3 text-xs opacity-75">
+                        <p>Confidence: {docValidation.confidence}</p>
+                        {docValidation.extractedCount !== undefined && (
+                          <p>Fields Found: {docValidation.extractedCount}/{docValidation.totalFields || 6}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
