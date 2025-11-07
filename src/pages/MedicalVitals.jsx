@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Activity, Heart, Thermometer, Droplets, AlertTriangle, TrendingUp, Loader } from 'lucide-react'
 import { MedicalAI } from '../services/medicalAI'
+import { useTranslation } from 'react-i18next'
 
 const MedicalVitals = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [vitals, setVitals] = useState({
     bloodPressure: '',
     heartRate: '',
@@ -78,7 +80,7 @@ const MedicalVitals = () => {
             className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-red-500/30"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
+            <span>{t('common.back_dashboard')}</span>
           </button>
         </div>
       </nav>
@@ -88,10 +90,10 @@ const MedicalVitals = () => {
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600 drop-shadow-lg">
-            VITALS <br /> MONITOR
+            {t('pages.medical_vitals.title1')} <br /> {t('pages.medical_vitals.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            Real-time vital signs monitoring with AI-powered analysis and health insights.
+            {t('pages.medical_vitals.subtitle')}
           </p>
         </div>
 
@@ -101,7 +103,7 @@ const MedicalVitals = () => {
             <div className="bg-red-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6">
               <Activity className="w-8 h-8 text-red-400" />
             </div>
-            <h2 className="text-2xl font-semibold text-white mb-6">Enter Vital Signs</h2>
+            <h2 className="text-2xl font-semibold text-white mb-6">{t('pages.medical_vitals.enter_vital_signs')}</h2>
             
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
@@ -181,12 +183,12 @@ const MedicalVitals = () => {
                 {loading ? (
                   <>
                     <Loader className="w-5 h-5 animate-spin" />
-                    Analyzing...
+                    {t('common.analyzing')}
                   </>
                 ) : (
                   <>
                     <Activity className="w-5 h-5" />
-                    Analyze Vitals
+                    {t('pages.medical_vitals.title2')} {t('common.analyze')}
                   </>
                 )}
               </button>
@@ -198,7 +200,7 @@ const MedicalVitals = () => {
             <div className="bg-red-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6">
               <TrendingUp className="w-8 h-8 text-red-400" />
             </div>
-            <h2 className="text-2xl font-semibold text-white mb-6">AI Analysis</h2>
+            <h2 className="text-2xl font-semibold text-white mb-6">{t('pages.medical_vitals.ai_analysis')}</h2>
             
             {loading && (
               <div className="text-center py-16">
@@ -304,7 +306,7 @@ const MedicalVitals = () => {
             {!analysis && !loading && (
               <div className="text-center py-16 text-red-600">
                 <Activity className="w-16 h-16 mx-auto mb-4 opacity-70" />
-                <p className="font-medium text-gray-300">Enter vitals to get AI analysis</p>
+                <p className="font-medium text-gray-300">{t('pages.medical_vitals.enter_vitals_cta')}</p>
               </div>
             )}
           </div>
@@ -313,7 +315,7 @@ const MedicalVitals = () => {
         {/* History */}
         {history.length > 0 && (
           <div className="mt-8 bg-gray-900/50 rounded-[40px] p-8 border border-red-400/30 shadow-2xl shadow-red-500/10 backdrop-filter backdrop-blur-sm">
-            <h2 className="text-2xl font-semibold text-white mb-6">Recent Readings</h2>
+            <h2 className="text-2xl font-semibold text-white mb-6">{t('common.recent_readings')}</h2>
             <div className="space-y-4">
               {history.slice(0, 5).map((entry, index) => (
                 <div key={index} className="p-4 bg-gray-800/50 rounded-xl border border-gray-600/30">

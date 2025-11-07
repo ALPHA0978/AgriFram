@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { ArrowLeft, Mail, Lock, User, Stethoscope } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true)
@@ -15,6 +16,7 @@ const Login = () => {
   
   const { login, signup } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -55,7 +57,7 @@ const Login = () => {
             className="flex items-center space-x-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-teal-500/30"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>{t('common.back_home')}</span>
           </button>
         </div>
       </nav>
@@ -68,10 +70,10 @@ const Login = () => {
               <Stethoscope className="w-8 h-8 text-teal-400" />
             </div>
             <h2 className="text-3xl font-bold text-white mb-2">
-              {isLogin ? 'Welcome Back' : 'Join MedicalAI'}
+              {isLogin ? t('pages.login.welcome_back') : t('pages.login.join')}
             </h2>
             <p className="text-gray-300">
-              {isLogin ? 'Access your medical AI dashboard' : 'Create your medical professional account'}
+              {isLogin ? t('pages.login.access_dashboard') : t('pages.login.create_account_subtitle')}
             </p>
           </div>
 
@@ -85,7 +87,7 @@ const Login = () => {
             {!isLogin && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Full Name
+                  {t('pages.login.full_name')}
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -103,7 +105,7 @@ const Login = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Email Address
+                {t('pages.login.email')}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -120,7 +122,7 @@ const Login = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Password
+                {t('pages.login.password')}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -140,7 +142,7 @@ const Login = () => {
               disabled={loading}
               className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-teal-500/30 disabled:opacity-50"
             >
-              {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+              {loading ? t('common.processing') : (isLogin ? t('pages.login.sign_in') : t('pages.login.create_account'))}
             </button>
           </form>
 
@@ -149,13 +151,13 @@ const Login = () => {
               onClick={() => setIsLogin(!isLogin)}
               className="text-teal-400 hover:text-teal-300 font-medium transition-colors"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? t('pages.login.switch_to_signup') : t('pages.login.switch_to_login')}
             </button>
           </div>
 
           <div className="mt-6 p-4 bg-teal-500/10 rounded-lg border border-teal-500/30">
             <p className="text-sm text-teal-300 text-center">
-              <strong>Demo Mode:</strong> Use any email and password to access the system
+              <strong>{t('pages.login.demo_mode')}</strong> {t('pages.login.demo_text')}
             </p>
           </div>
         </div>

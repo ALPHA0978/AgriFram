@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Leaf, ArrowRight, Cloud, Droplet, Wind, Thermometer, TrendingUp, Cpu, Wrench, Menu, X, ArrowUpRight, Stethoscope } from 'lucide-react';
 import Prism from '../components/Prism';
+import { useTranslation } from 'react-i18next';
 
 const Home = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   // Reusable component for the glassmorphic cards
   const GlassCard = ({ children, extraClasses = '' }) => (
@@ -140,11 +142,11 @@ const Home = () => {
           {/* Desktop Menu */}
           <div className="flex-1 hidden md:flex items-center justify-center">
             <div className="bg-white/10 rounded-full px-4 py-2 border border-white/20 shadow-lg space-x-4 lg:space-x-8">
-              <button onClick={() => navigate('/')} className="text-green-400 transition-colors duration-300 text-sm lg:text-base font-medium">Home</button>
-              <button onClick={() => navigate('/about')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">About</button>
-              <button onClick={() => navigate('/analysis')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">Analysis</button>
-              <button onClick={() => navigate('/insights')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">Insights</button>
-              <button onClick={() => navigate('/ai-analytics')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">AI Analytics</button>
+              <button onClick={() => navigate('/')} className="text-green-400 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.home')}</button>
+              <button onClick={() => navigate('/about')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.about')}</button>
+              <button onClick={() => navigate('/analysis')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.analysis')}</button>
+              <button onClick={() => navigate('/insights')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.insights')}</button>
+              <button onClick={() => navigate('/ai-analytics')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.ai_analytics')}</button>
             </div>
           </div>
           
@@ -153,7 +155,7 @@ const Home = () => {
             onClick={() => navigate('/contact')} 
             className="hidden md:flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
           >
-            <span>Contact</span>
+            <span>{t('nav.contact')}</span>
             <ArrowUpRight className="w-4 h-4 ml-1" />
           </button>
 
@@ -175,12 +177,12 @@ const Home = () => {
           </button>
         </div>
         <div className="flex flex-col items-center space-y-8 mt-16">
-          <button onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-green-400">Home</button>
-          <button onClick={() => { navigate('/about'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">About</button>
-          <button onClick={() => { navigate('/analysis'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">Analysis</button>
-          <button onClick={() => { navigate('/insights'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">Insights</button>
-          <button onClick={() => { navigate('/ai-analytics'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">AI Analytics</button>
-          <button onClick={() => { navigate('/contact'); setIsMobileMenuOpen(false); }} className="mt-8 bg-green-500 px-8 py-3 rounded-full font-bold text-xl">Contact</button>
+          <button onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-green-400">{t('nav.home')}</button>
+          <button onClick={() => { navigate('/about'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.about')}</button>
+          <button onClick={() => { navigate('/analysis'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.analysis')}</button>
+          <button onClick={() => { navigate('/insights'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.insights')}</button>
+          <button onClick={() => { navigate('/ai-analytics'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.ai_analytics')}</button>
+          <button onClick={() => { navigate('/contact'); setIsMobileMenuOpen(false); }} className="mt-8 bg-green-500 px-8 py-3 rounded-full font-bold text-xl">{t('nav.contact')}</button>
         </div>
       </div>
 
@@ -190,12 +192,11 @@ const Home = () => {
         {/* Left Section - Hero & Features */}
         <div className="flex-1 flex flex-col space-y-8 text-center lg:text-left">
           <h1 className="text-4xl md:text-6xl lg:text-8xl font-black leading-tight tracking-tighter">
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-white to-green-700">SMART FARMING</span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-green-500 to-green-300">SOLUTIONS</span>
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-white to-green-700">{t('hero.title1')}</span>
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-green-500 to-green-300">{t('hero.title2')}</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0">
-            Advanced AI solutions for agriculture and market intelligence - revolutionizing farming and medical diagnosis with cutting-edge technology.
-            {/* Advanced AI solutions for agriculture and healthcare - revolutionizing farming and medical diagnosis with cutting-edge technology. */}
+            {t('hero.tagline')}
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
@@ -204,14 +205,14 @@ const Home = () => {
               className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
             >
               <Leaf className="w-5 h-5" />
-              <span>Farming AI</span>
+              <span>{t('hero.cta_farming_ai')}</span>
             </button>
             <button
               onClick={() => navigate('/about')}
               className="flex items-center justify-center space-x-2 bg-{rgb} hover:bg-teal-600 text-white font-semibold rounded-full px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-teal-500/30"
             >
               
-              <span>Learn More</span>
+              <span>{t('hero.cta_learn_more')}</span>
             </button>
           </div>
 
@@ -220,29 +221,29 @@ const Home = () => {
               <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                 <Leaf className="w-6 h-6 text-green-400" />
               </div>
-              <div className="text-gray-300 font-medium text-sm">Crop Disease</div>
-              <div className="font-bold tracking-wide text-white">Detection</div>
+              <div className="text-gray-300 font-medium text-sm">{t('features.crop_disease')}</div>
+              <div className="font-bold tracking-wide text-white">{t('features.detection')}</div>
             </div>
             <div className="bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-4 text-center border border-green-400/30 shadow-lg shadow-green-500/10">
               <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                 <Cpu className="w-6 h-6 text-green-400" />
               </div>
-              <div className="text-gray-300 font-medium text-sm">AI-Powered</div>
-              <div className="font-bold tracking-wide text-white">Insights</div>
+              <div className="text-gray-300 font-medium text-sm">{t('features.ai_powered')}</div>
+              <div className="font-bold tracking-wide text-white">{t('features.insights')}</div>
             </div>
             <div className="bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-4 text-center border border-green-400/30 shadow-lg shadow-green-500/10">
               <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                 <TrendingUp className="w-6 h-6 text-green-400" />
               </div>
-              <div className="text-gray-300 font-medium text-sm">Yield</div>
-              <div className="font-bold tracking-wide text-white">Optimization</div>
+              <div className="text-gray-300 font-medium text-sm">{t('features.yield')}</div>
+              <div className="font-bold tracking-wide text-white">{t('features.optimization')}</div>
             </div>
             <div className="bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-4 text-center border border-green-400/30 shadow-lg shadow-green-500/10">
               <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                 <Wrench className="w-6 h-6 text-green-400" />
               </div>
-              <div className="text-gray-300 font-medium text-sm">Smart</div>
-              <div className="font-bold tracking-wide text-white">Automation</div>
+              <div className="text-gray-300 font-medium text-sm">{t('features.smart')}</div>
+              <div className="font-bold tracking-wide text-white">{t('features.automation')}</div>
             </div>
           </div>
         </div>
@@ -274,22 +275,22 @@ const Home = () => {
             <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
               <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/20">
                 <Droplet className="w-6 h-6 text-green-400 mx-auto mb-1" />
-                <div className="text-gray-300 font-medium">Humidity</div>
+                <div className="text-gray-300 font-medium">{t('weather.humidity')}</div>
                 <div className="font-bold tracking-wide">40%</div>
               </div>
               <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/20">
                 <Wind className="w-6 h-6 text-green-400 mx-auto mb-1" />
-                <div className="text-gray-300 font-medium">Wind</div>
+                <div className="text-gray-300 font-medium">{t('weather.wind')}</div>
                 <div className="font-bold tracking-wide">23 m/s</div>
               </div>
               <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/20">
                 <Droplet className="w-6 h-6 text-green-400 mx-auto mb-1" />
-                <div className="text-gray-300 font-medium">Precipitation</div>
+                <div className="text-gray-300 font-medium">{t('weather.precipitation')}</div>
                 <div className="font-bold tracking-wide">9.5 ml</div>
               </div>
               <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/20">
                 <TrendingUp className="w-6 h-6 text-green-400 mx-auto mb-1" />
-                <div className="text-gray-300 font-medium">Yield</div>
+                <div className="text-gray-300 font-medium">{t('weather.yield')}</div>
                 <div className="font-bold tracking-wide">+15%</div>
               </div>
             </div>
@@ -307,7 +308,7 @@ const Home = () => {
                 <span className="text-green-400">AgriFarm</span>AI 
               </div>
               <p className="text-gray-300 mb-6 max-w-md">
-                Revolutionizing agriculture with AI-powered insights for soil health, crop monitoring, and sustainable farming practices.
+                {t('footer.brand_desc')}
               </p>
               <div className="flex space-x-4">
                 <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center hover:bg-green-500/30 transition-colors cursor-pointer">
@@ -324,13 +325,13 @@ const Home = () => {
             
             {/* Quick Links */}
             <div>
-              <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+              <h3 className="text-white font-semibold mb-4">{t('footer.quick_links')}</h3>
               <ul className="space-y-2">
-                <li><button onClick={() => navigate('/')} className="text-gray-300 hover:text-green-400 transition-colors">Home</button></li>
-                <li><button onClick={() => navigate('/about')} className="text-gray-300 hover:text-green-400 transition-colors">About</button></li>
-                <li><button onClick={() => navigate('/analysis')} className="text-gray-300 hover:text-green-400 transition-colors">Analysis</button></li>
-                <li><button onClick={() => navigate('/insights')} className="text-gray-300 hover:text-green-400 transition-colors">Insights</button></li>
-                <li><button onClick={() => navigate('/farming-tool')} className="text-gray-300 hover:text-green-400 transition-colors">AI Tools</button></li>
+                <li><button onClick={() => navigate('/')} className="text-gray-300 hover:text-green-400 transition-colors">{t('nav.home')}</button></li>
+                <li><button onClick={() => navigate('/about')} className="text-gray-300 hover:text-green-400 transition-colors">{t('nav.about')}</button></li>
+                <li><button onClick={() => navigate('/analysis')} className="text-gray-300 hover:text-green-400 transition-colors">{t('nav.analysis')}</button></li>
+                <li><button onClick={() => navigate('/insights')} className="text-gray-300 hover:text-green-400 transition-colors">{t('nav.insights')}</button></li>
+                <li><button onClick={() => navigate('/farming-tool')} className="text-gray-300 hover:text-green-400 transition-colors">{t('footer.ai_tools')}</button></li>
               </ul>
             </div>
             
@@ -339,11 +340,11 @@ const Home = () => {
           
           {/* Bottom Bar */}
           <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">© 2024 AgriFarmAI. All Rights Reserved.</p>
+            <p className="text-gray-400 text-sm">{t('footer.copy')}</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">Privacy Policy</button>
-              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">Terms of Service</button>
-              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">SDG 2 - Zero Hunger</button>
+              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">{t('footer.privacy')}</button>
+              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">{t('footer.terms')}</button>
+              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">{t('footer.sdg2')}</button>
             </div>
           </div>
         </div>

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Stethoscope, User, Calendar, FileText, AlertTriangle, CheckCircle, Clock, Loader, Thermometer, Zap } from 'lucide-react'
 import { MedicalAI } from '../services/medicalAI'
 import CustomDropdown from '../components/CustomDropdown'
+import { useTranslation } from 'react-i18next'
 
 const MedicalDiagnosis = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [patientData, setPatientData] = useState({
     age: '',
     gender: '',
@@ -87,7 +89,7 @@ const MedicalDiagnosis = () => {
             className="flex items-center space-x-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-teal-500/30"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
+            <span>{t('common.back_dashboard')}</span>
           </button>
         </div>
       </nav>
@@ -97,10 +99,10 @@ const MedicalDiagnosis = () => {
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-600 drop-shadow-lg">
-            AI <br /> DIAGNOSIS
+            {t('pages.medical_diagnosis.title1')} <br /> {t('pages.medical_diagnosis.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            Advanced symptom analysis with comprehensive medical insights and treatment recommendations.
+            {t('pages.medical_diagnosis.subtitle')}
           </p>
         </div>
 
@@ -110,7 +112,7 @@ const MedicalDiagnosis = () => {
             <div className="bg-teal-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6">
               <Stethoscope className="w-8 h-8 text-teal-400" />
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">Symptom Analysis</h3>
+            <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">{t('pages.medical_diagnosis.symptom_analysis')}</h3>
             
             {/* Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -292,12 +294,12 @@ const MedicalDiagnosis = () => {
               {isAnalyzing ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
-                  <span>Analyzing...</span>
+                  <span>{t('common.analyzing')}</span>
                 </>
               ) : (
                 <>
                   <Stethoscope className="w-5 h-5" />
-                  <span>Analyze Symptoms</span>
+                  <span>{t('pages.medical_diagnosis.analyze_symptoms')}</span>
                 </>
               )}
             </button>

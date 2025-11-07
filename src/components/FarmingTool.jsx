@@ -1,36 +1,41 @@
 import { useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { ArrowLeft, Leaf, Beaker, Camera, Satellite, TrendingUp, MapPin } from 'lucide-react';
+=======
+import { ArrowLeft, Leaf, Beaker, Camera, Satellite, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+>>>>>>> 7ce6e76c693983f8403bdc3172b349977ec47540
 
 const SustainableFarmingTool = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const modules = [
-    
     {
       id: 'crop',
-      title: 'Crop Health',
-      description: 'Disease detection, pest identification, and treatment recommendations',
+      title: t('pages.farming_tool.modules.crop.title'),
+      description: t('pages.farming_tool.modules.crop.desc'),
       icon: <Camera className="w-6 h-6" />,
       path: '/crop-health'
     },
     {
       id: 'soil',
-      title: 'Soil Analysis',
-      description: 'AI-powered soil health assessment with NPK analysis and crop recommendations',
+      title: t('pages.farming_tool.modules.soil.title'),
+      description: t('pages.farming_tool.modules.soil.desc'),
       icon: <Beaker className="w-6 h-6" />,
       path: '/soil-analysis'
     },
     {
       id: 'monitoring',
-      title: 'IoT Monitoring',
-      description: 'Real-time sensor data analysis and irrigation optimization',
+      title: t('pages.farming_tool.modules.monitoring.title'),
+      description: t('pages.farming_tool.modules.monitoring.desc'),
       icon: <Satellite className="w-6 h-6" />,
       path: '/monitoring'
     },
     {
       id: 'market',
-      title: 'Market Intelligence',
-      description: 'Market analysis, price trends, and profitability insights',
+      title: t('pages.farming_tool.modules.market.title'),
+      description: t('pages.farming_tool.modules.market.desc'),
       icon: <TrendingUp className="w-6 h-6" />,
       path: '/market-intel'
     },
@@ -63,7 +68,7 @@ const SustainableFarmingTool = () => {
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>{t('common.back_home')}</span>
           </button>
         </div>
       </nav>
@@ -74,10 +79,10 @@ const SustainableFarmingTool = () => {
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
-            AI FARMING <br /> MODULES
+            {t('pages.farming_tool.title1')} <br /> {t('pages.farming_tool.title2')}
           </h1>
           <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto">
-            Choose your AI-powered farming tool to optimize productivity and sustainability.
+            {t('pages.farming_tool.subtitle')}
           </p>
         </div>
 
@@ -131,12 +136,12 @@ const SustainableFarmingTool = () => {
               </p>
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-gray-400 text-xs">Status</span>
-                  <span className="text-green-400 font-medium text-xs">Ready</span>
+                  <span className="text-gray-400 text-xs">{t('pages.farming_tool.card.status_label')}</span>
+                  <span className="text-green-400 font-medium text-xs">{t('pages.farming_tool.card.ready')}</span>
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-gray-400 text-xs">Analysis</span>
-                  <span className="text-white font-medium text-xs">Real-time</span>
+                  <span className="text-gray-400 text-xs">{t('pages.farming_tool.card.analysis_label')}</span>
+                  <span className="text-white font-medium text-xs">{t('pages.farming_tool.card.analysis_realtime')}</span>
                 </div>
               </div>
               <button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-full px-4 py-2 text-sm transition-all duration-300 transform group-hover:scale-105 shadow-lg hover:shadow-green-500/30">
@@ -150,8 +155,7 @@ const SustainableFarmingTool = () => {
         <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">
-              our contribution 
-              {/* Contributing to SIH 3.0 goal */}
+              {t('pages.farming_tool.our_contribution')}
             </h2>
             <p className="text-lg text-gray-300 mb-8 max-w-3xl mx-auto">
               Our AI-powered platform directly addresses global hunger by increasing agricultural productivity, 
@@ -177,7 +181,7 @@ const SustainableFarmingTool = () => {
 
       {/* Footer */}
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
+        <p>{t('footer.copy')}</p>
       </div>
     </div>
   );

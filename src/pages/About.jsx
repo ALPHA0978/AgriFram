@@ -1,9 +1,11 @@
 import { Leaf, Users, Target, Shield, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const About = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-inter overflow-hidden relative">
 
@@ -25,7 +27,7 @@ const About = () => {
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home</span>
+            <span>{t('common.back_home')}</span>
           </button>
         </div>
       </nav>
@@ -38,10 +40,10 @@ const About = () => {
           
           <div className="text-center md:text-left md:w-1/2">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
-              ABOUT <br /> AgriFARMAI
+              {t('pages.about.title1')} <br /> {t('pages.about.title2')}
             </h1>
             <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto md:mx-0">
-              AI-powered mobile portal for farmers' disease diagnosis and reporting, contributing to SDG 2: Zero Hunger through enhanced agricultural productivity and food security.
+              {t('pages.about.subtitle')}
             </p>
           </div>
 
@@ -86,12 +88,12 @@ const About = () => {
         {/* Expected Outcomes Section */}
         <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500">
-            Expected Outcomes & SDG 2 Impact
+            {t('pages.about.expected_outcomes')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
               <h3 className="text-2xl font-bold mb-6 text-green-400 flex items-center gap-2">
-                Disease Management 
+                {t('pages.about.disease_management')} 
               </h3>
               <ul className="space-y-4 text-gray-300">
                 <ListItem text="Enhanced Disease Diagnosis through AI" />
@@ -102,7 +104,7 @@ const About = () => {
             </div>
             <div>
               <h3 className="text-2xl font-bold mb-6 text-green-400 flex items-center gap-2">
-                Food Security Impact 
+                {t('pages.about.food_security_impact')} 
               </h3>
               <ul className="space-y-4 text-gray-300">
                 <ListItem text="Improved Farm Productivity" />
@@ -117,12 +119,12 @@ const About = () => {
         {/* Technical Integration Section */}
         <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
           <h2 className="text-3xl md:text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500">
-            AI Integration & Community Impact
+            {t('pages.about.ai_integration')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
               <h3 className="text-2xl font-bold mb-6 text-green-400 flex items-center gap-2">
-                AI Technology 
+                {t('pages.about.ai_technology')} 
               </h3>
               <ul className="space-y-4 text-gray-300">
                 <ListItem text="Integration with existing NDLM systems" />
@@ -133,7 +135,7 @@ const About = () => {
             </div>
             <div>
               <h3 className="text-2xl font-bold mb-6 text-green-400 flex items-center gap-2">
-                Community Benefits 
+                {t('pages.about.community_benefits')} 
               </h3>
               <ul className="space-y-4 text-gray-300">
                 <ListItem text="Integration with Existing Surveillance Systems" />
@@ -148,7 +150,7 @@ const About = () => {
 
       {/* Footer or Bottom Section */}
       <footer className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
+        <p>{t('footer.copy')}</p>
       </footer>
     </div>
   );
