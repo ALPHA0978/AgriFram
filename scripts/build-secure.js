@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Secure build script for FarmAI Crop Recommendation System
+ * Secure build script for AgriFarmAI Crop Recommendation System
  */
 
 import fs from 'fs';
@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.join(__dirname, '..');
 
-console.log('🔒 Starting secure build process for FarmAI...');
+console.log('🔒 Starting secure build process for AgriFarmAI...');
 
 // Backup original .env file
 const envPath = path.join(projectRoot, '.env');
@@ -34,7 +34,7 @@ VITE_BUILD_TIME=${new Date().toISOString()}
   console.log('✅ Created secure production .env');
 
   // Run the build
-  console.log('🏗️  Building FarmAI application...');
+  console.log('🏗️  Building AgriFarmAI application...');
   execSync('npm run build', { stdio: 'inherit', cwd: projectRoot });
   console.log('✅ Build completed successfully');
 

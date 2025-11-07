@@ -1,10 +1,10 @@
-# FarmAI - AI-Powered Smart Farming Platform
+# AgriFarmAI - AI-Powered Smart Farming Platform
 
 A comprehensive AI-driven platform designed to revolutionize agriculture by providing farmers with intelligent insights for soil health, crop monitoring, irrigation optimization, and market analysis. This project directly contributes to **SDG 2 - Zero Hunger** by increasing agricultural productivity and empowering farmers with technology-driven solutions.
 
 ## 🌟 Project Overview
 
-FarmAI is a modern web application that leverages artificial intelligence to provide farmers with actionable insights across four core modules:
+AgriFarmAI is a modern web application that leverages artificial intelligence to provide farmers with actionable insights across four core modules:
 - **Soil Analysis**: AI-powered soil health assessment with NPK analysis
 - **Crop Health Monitoring**: Disease detection, pest identification, and treatment recommendations
 - **IoT Monitoring**: Real-time sensor data analysis and irrigation optimization

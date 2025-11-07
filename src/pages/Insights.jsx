@@ -201,7 +201,7 @@ const Insights = () => {
       </div>
 
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 FarmAI. All Rights Reserved.</p>
+        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
       </div>
     </div>
   );

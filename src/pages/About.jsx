@@ -38,7 +38,7 @@ const About = () => {
           
           <div className="text-center md:text-left md:w-1/2">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
-              ABOUT <br /> FARMAI
+              ABOUT <br /> AgriFARMAI
             </h1>
             <p className="text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto md:mx-0">
               AI-powered mobile portal for farmers' disease diagnosis and reporting, contributing to SDG 2: Zero Hunger through enhanced agricultural productivity and food security.
@@ -148,7 +148,7 @@ const About = () => {
 
       {/* Footer or Bottom Section */}
       <footer className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 FarmAI. All Rights Reserved.</p>
+        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
       </footer>
     </div>
   );

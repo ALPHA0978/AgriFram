@@ -1,4 +1,4 @@
-# FarmAI - Smart Farming Platform Features Summary
+# AgriFarmAI - Smart Farming Platform Features Summary
 
 ## 🌾 Core Features Overview
 

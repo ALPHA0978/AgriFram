@@ -115,7 +115,7 @@ const Contact = () => {
             <InfoCard 
               icon={<Mail className="w-8 h-8 text-green-400" />}
               title="Email Us"
-              content="support@farmai.com"
+              content="support@agrifarm-ai.com"
             />
             <InfoCard 
               icon={<Phone className="w-8 h-8 text-green-400" />}
@@ -203,7 +203,7 @@ const Contact = () => {
       </div>
       
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 FarmAI. All Rights Reserved.</p>
+        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
       </div>
     </div>
   );
