@@ -134,7 +134,7 @@ const Home = () => {
       <nav className="relative z-20 w-full px-4 sm:px-6 py-4 bg-black/80 border-b border-green-400/20">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="text-2xl font-black text-white tracking-tight">
-            <span className="text-green-400">Farm</span>AI 
+            <span className="text-green-400">AgriFarm</span>AI 
           </div>
           
           {/* Desktop Menu */}
@@ -194,7 +194,8 @@ const Home = () => {
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-green-500 to-green-300">SOLUTIONS</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0">
-            Advanced AI solutions for agriculture and healthcare - revolutionizing farming and medical diagnosis with cutting-edge technology.
+            Advanced AI solutions for agriculture and market intelligence - revolutionizing farming and medical diagnosis with cutting-edge technology.
+            {/* Advanced AI solutions for agriculture and healthcare - revolutionizing farming and medical diagnosis with cutting-edge technology. */}
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
@@ -210,7 +211,7 @@ const Home = () => {
               className="flex items-center justify-center space-x-2 bg-{rgb} hover:bg-teal-600 text-white font-semibold rounded-full px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-teal-500/30"
             >
               
-              <span>Learn MOre</span>
+              <span>Learn More</span>
             </button>
           </div>
 
@@ -303,7 +304,7 @@ const Home = () => {
             {/* Brand Section */}
             <div className="col-span-1 md:col-span-2">
               <div className="text-2xl font-black text-white tracking-tight mb-4">
-                <span className="text-green-400">Farm</span>AI 
+                <span className="text-green-400">AgriFarm</span>AI 
               </div>
               <p className="text-gray-300 mb-6 max-w-md">
                 Revolutionizing agriculture with AI-powered insights for soil health, crop monitoring, and sustainable farming practices.
@@ -338,7 +339,7 @@ const Home = () => {
           
           {/* Bottom Bar */}
           <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">© 2024 FarmAI. All Rights Reserved.</p>
+            <p className="text-gray-400 text-sm">© 2024 AgriFarmAI. All Rights Reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">Privacy Policy</button>
               <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">Terms of Service</button>

@@ -78,7 +78,7 @@ const Contact = () => {
       <nav className="relative z-10 w-full px-6 py-4 backdrop-filter backdrop-blur-lg bg-black/30 border-b border-green-400/20">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="text-2xl font-black text-white tracking-tight">
-            <span className="text-green-400">Farm</span>AI
+            <span className="text-green-400">AgriFarm</span>AI
           </div>
           <button 
             onClick={() => navigate('/')}
@@ -115,7 +115,7 @@ const Contact = () => {
             <InfoCard 
               icon={<Mail className="w-8 h-8 text-green-400" />}
               title="Email Us"
-              content="support@farmai.com"
+              content="support@agrifarm-ai.com"
             />
             <InfoCard 
               icon={<Phone className="w-8 h-8 text-green-400" />}
@@ -203,7 +203,7 @@ const Contact = () => {
       </div>
       
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 FarmAI. All Rights Reserved.</p>
+        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
       </div>
     </div>
   );

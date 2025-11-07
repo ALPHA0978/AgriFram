@@ -49,7 +49,7 @@ const SustainableFarmingTool = () => {
       <nav className="relative z-10 w-full px-6 py-4 backdrop-filter backdrop-blur-lg bg-black/30 border-b border-green-400/20">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="text-2xl font-black text-white tracking-tight">
-            <span className="text-green-400">Farm</span>AI
+            <span className="text-green-400">AgriFarm</span>AI
           </div>
           <button 
             onClick={() => navigate('/')}
@@ -110,7 +110,8 @@ const SustainableFarmingTool = () => {
         <div className="bg-gray-900/50 rounded-[40px] p-8 md:p-12 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600">
-              Contributing to SIH 2025 gole
+              our contribution 
+              {/* Contributing to SIH 3.0 goal */}
             </h2>
             <p className="text-lg text-gray-300 mb-8 max-w-3xl mx-auto">
               Our AI-powered platform directly addresses global hunger by increasing agricultural productivity, 
@@ -136,7 +137,7 @@ const SustainableFarmingTool = () => {
 
       {/* Footer */}
       <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-        <p>© 2024 FarmAI. All Rights Reserved.</p>
+        <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
       </div>
     </div>
   );
