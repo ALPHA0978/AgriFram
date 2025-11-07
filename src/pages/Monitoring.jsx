@@ -317,7 +317,7 @@ const Monitoring = () => {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing || isProcessingDoc || isListening}
-                className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
+                className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isProcessingDoc ? (
                   <>
@@ -337,7 +337,7 @@ const Monitoring = () => {
                 className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${
                   isListening 
                     ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-                    : 'bg-orange-500 hover:bg-orange-600'
+                    : 'bg-green-500 hover:bg-green-600'
                 } text-white disabled:bg-gray-600 disabled:text-gray-400`}
               >
                 {isListening ? (

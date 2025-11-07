@@ -284,7 +284,7 @@ const SoilAnalysis = () => {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing || isProcessingDoc || isListening}
-                className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/30 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30 disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 {isProcessingDoc ? (
                   <>
@@ -304,7 +304,7 @@ const SoilAnalysis = () => {
                 className={`flex items-center justify-center space-x-2 py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
                   isListening 
                     ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-red-500/30' 
-                    : 'bg-orange-500 hover:bg-orange-600 shadow-orange-500/30'
+                    : 'bg-green-500 hover:bg-green-600 shadow-green-500/30'
                 } text-white disabled:bg-gray-600 disabled:cursor-not-allowed`}
               >
                 {isListening ? (
