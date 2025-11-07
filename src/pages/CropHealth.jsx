@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X } from 'lucide-react';
+import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 import CustomDropdown from '../components/CustomDropdown';
 
