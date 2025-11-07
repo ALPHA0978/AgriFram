@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Beaker, BarChart3, DollarSign, Target, CheckCircle, Zap, Loader, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Beaker, BarChart3, DollarSign, Target, CheckCircle, Zap, Loader, AlertTriangle, Upload, FileText } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 
 const SoilAnalysis = () => {
@@ -17,6 +17,9 @@ const SoilAnalysis = () => {
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [soilAnalysis, setSoilAnalysis] = useState(null);
+  const [uploadedDoc, setUploadedDoc] = useState(null);
+  const [isProcessingDoc, setIsProcessingDoc] = useState(false);
+  const fileInputRef = useRef(null);
 
   const analyzeSoilWithAI = async () => {
     setIsAnalyzing(true);
@@ -31,6 +34,57 @@ const SoilAnalysis = () => {
       });
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleDocumentUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadedDoc(file);
+      processDocument(file);
+    }
+  };
+
+  const processDocument = async (file) => {
+    setIsProcessingDoc(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageData = e.target.result;
+        
+        const systemPrompt = `Extract soil test data from this document/report. Return ONLY valid JSON:
+{
+  "ph": "pH value",
+  "moisture": "moisture percentage",
+  "organicMatter": "organic matter percentage",
+  "nitrogen": "nitrogen ppm",
+  "phosphorus": "phosphorus ppm",
+  "potassium": "potassium ppm",
+  "salinity": "salinity dS/m",
+  "temperature": "soil temperature"
+}`;
+        
+        const extractedData = await FarmerAI.callAPI(
+          `Analyze this soil test report and extract all soil parameters. Image: ${imageData}`,
+          systemPrompt
+        );
+        
+        const parsed = FarmerAI.parseJSON(extractedData);
+        if (parsed) {
+          setSoilData(prev => ({
+            ...prev,
+            ...Object.fromEntries(
+              Object.entries(parsed).filter(([_, value]) => value && value !== "")
+            )
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Document processing error:', error);
+      alert('Failed to process soil report. Please try again.');
+    } finally {
+      setIsProcessingDoc(false);
     }
   };
 
@@ -94,23 +148,58 @@ const SoilAnalysis = () => {
                 </div>
               ))}
             </div>
-            <button
-              onClick={analyzeSoilWithAI}
-              disabled={!soilData.ph || isAnalyzing}
-              className="w-full mt-8 flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30 disabled:bg-gray-600 disabled:cursor-not-allowed"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  <span>Analyzing Soil...</span>
-                </>
-              ) : (
-                <>
-                  <Beaker className="w-5 h-5" />
-                  <span>Analyze with AI</span>
-                </>
-              )}
-            </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isAnalyzing || isProcessingDoc}
+                className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/30 disabled:bg-gray-600 disabled:cursor-not-allowed"
+              >
+                {isProcessingDoc ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5" />
+                    <span>Upload Soil Report</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={analyzeSoilWithAI}
+                disabled={!soilData.ph || isAnalyzing || isProcessingDoc}
+                className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30 disabled:bg-gray-600 disabled:cursor-not-allowed"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    <span>Analyzing Soil...</span>
+                  </>
+                ) : (
+                  <>
+                    <Beaker className="w-5 h-5" />
+                    <span>Analyze with AI</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf,.doc,.docx"
+              onChange={handleDocumentUpload}
+              className="hidden"
+            />
+            {uploadedDoc && (
+              <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 text-purple-400">
+                  <FileText className="w-5 h-5" />
+                  <span className="font-medium">Soil Report Uploaded:</span>
+                  <span>{uploadedDoc.name}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Soil Results Card */}

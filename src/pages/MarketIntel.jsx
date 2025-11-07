@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, BarChart3, DollarSign, Target, CheckCircle, Loader, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, TrendingUp, BarChart3, DollarSign, Target, CheckCircle, Loader, AlertTriangle, Upload, FileText } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 import { AlphaVantageService } from '../services/alphaVantageService';
 import CustomDropdown from '../components/CustomDropdown';
@@ -18,6 +18,9 @@ const MarketIntel = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [marketAnalysis, setMarketAnalysis] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [uploadedDoc, setUploadedDoc] = useState(null);
+  const [isProcessingDoc, setIsProcessingDoc] = useState(false);
+  const fileInputRef = useRef(null);
 
   const analyzeMarketWithAI = async () => {
     setIsAnalyzing(true);
@@ -193,6 +196,55 @@ const MarketIntel = () => {
     }
   };
 
+  const handleDocumentUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadedDoc(file);
+      processDocument(file);
+    }
+  };
+
+  const processDocument = async (file) => {
+    setIsProcessingDoc(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageData = e.target.result;
+        
+        const systemPrompt = `Extract farm and market data from this document. Return ONLY valid JSON:
+{
+  "location": "farm location/state/district",
+  "farmSize": "farm size in acres",
+  "budget": "available budget amount",
+  "season": "Kharif|Rabi|Zaid",
+  "soilType": "soil type",
+  "waterAvailability": "water source/availability"
+}`;
+        
+        const extractedData = await FarmerAI.callAPI(
+          `Analyze this farm/market document and extract relevant information. Image: ${imageData}`,
+          systemPrompt
+        );
+        
+        const parsed = FarmerAI.parseJSON(extractedData);
+        if (parsed) {
+          setMarketData(prev => ({
+            ...prev,
+            ...Object.fromEntries(
+              Object.entries(parsed).filter(([_, value]) => value && value !== "")
+            )
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Document processing error:', error);
+      alert('Failed to process market document. Please try again.');
+    } finally {
+      setIsProcessingDoc(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-inter relative overflow-hidden">
       
@@ -316,23 +368,58 @@ const MarketIntel = () => {
                 />
               </div>
             </div>
-            <button
-              onClick={analyzeMarketWithAI}
-              disabled={!marketData.location || isAnalyzing}
-              className="w-full mt-8 flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  <span>Analyzing Market...</span>
-                </>
-              ) : (
-                <>
-                  <TrendingUp className="w-5 h-5" />
-                  <span>Get Recommendations</span>
-                </>
-              )}
-            </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isAnalyzing || isProcessingDoc}
+                className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
+              >
+                {isProcessingDoc ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5" />
+                    <span>Upload Farm Report</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={analyzeMarketWithAI}
+                disabled={!marketData.location || isAnalyzing || isProcessingDoc}
+                className="flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    <span>Analyzing Market...</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="w-5 h-5" />
+                    <span>Get Recommendations</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf,.doc,.docx"
+              onChange={handleDocumentUpload}
+              className="hidden"
+            />
+            {uploadedDoc && (
+              <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                <div className="flex items-center space-x-2 text-purple-400">
+                  <FileText className="w-5 h-5" />
+                  <span className="font-medium">Farm Report Uploaded:</span>
+                  <span>{uploadedDoc.name}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Market Results Card */}
