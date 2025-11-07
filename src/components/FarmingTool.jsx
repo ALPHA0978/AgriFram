@@ -7,32 +7,31 @@ const SustainableFarmingTool = () => {
   const { t } = useTranslation();
 
   const modules = [
-    
     {
       id: 'crop',
-      title: 'Crop Health',
-      description: 'Disease detection, pest identification, and treatment recommendations',
+      title: t('pages.farming_tool.modules.crop.title'),
+      description: t('pages.farming_tool.modules.crop.desc'),
       icon: <Camera className="w-6 h-6" />,
       path: '/crop-health'
     },
     {
       id: 'soil',
-      title: 'Soil Analysis',
-      description: 'AI-powered soil health assessment with NPK analysis and crop recommendations',
+      title: t('pages.farming_tool.modules.soil.title'),
+      description: t('pages.farming_tool.modules.soil.desc'),
       icon: <Beaker className="w-6 h-6" />,
       path: '/soil-analysis'
     },
     {
       id: 'monitoring',
-      title: 'IoT Monitoring',
-      description: 'Real-time sensor data analysis and irrigation optimization',
+      title: t('pages.farming_tool.modules.monitoring.title'),
+      description: t('pages.farming_tool.modules.monitoring.desc'),
       icon: <Satellite className="w-6 h-6" />,
       path: '/monitoring'
     },
     {
       id: 'market',
-      title: 'Market Intelligence',
-      description: 'Market analysis, price trends, and profitability insights',
+      title: t('pages.farming_tool.modules.market.title'),
+      description: t('pages.farming_tool.modules.market.desc'),
       icon: <TrendingUp className="w-6 h-6" />,
       path: '/market-intel'
     }
@@ -93,12 +92,12 @@ const SustainableFarmingTool = () => {
               </p>
               <div className="space-y-2 mb-4">
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-gray-400 text-xs">Status</span>
-                  <span className="text-green-400 font-medium text-xs">Ready</span>
+                  <span className="text-gray-400 text-xs">{t('pages.farming_tool.card.status_label')}</span>
+                  <span className="text-green-400 font-medium text-xs">{t('pages.farming_tool.card.ready')}</span>
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-gray-400 text-xs">Analysis</span>
-                  <span className="text-white font-medium text-xs">Real-time</span>
+                  <span className="text-gray-400 text-xs">{t('pages.farming_tool.card.analysis_label')}</span>
+                  <span className="text-white font-medium text-xs">{t('pages.farming_tool.card.analysis_realtime')}</span>
                 </div>
               </div>
               <button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-full px-4 py-2 text-sm transition-all duration-300 transform group-hover:scale-105 shadow-lg hover:shadow-green-500/30">
