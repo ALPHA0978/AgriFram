@@ -64,5 +64,5 @@ src\pages\Contact.jsx:
 
 src\pages\Insights.jsx:
   203        <div className="relative z-10 py-8 text-center text-gray-500 text-sm">
-  204:         <p>© 2024 AgriFarmAI. All Rights Reserved.</p>
+  204:         <p>© 2025 AgriFarmAI. All Rights Reserved.</p>
   205        </div>
