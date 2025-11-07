@@ -524,7 +524,7 @@ const MarketIntel = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*,.pdf,.doc,.docx"
+              accept=".pdf,.txt,.doc,.docx"
               onChange={handleDocumentUpload}
               className="hidden"
             />

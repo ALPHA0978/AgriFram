@@ -148,12 +148,12 @@ const CropHealth = () => {
     setIsProcessingDoc(true);
     setDocValidation(null);
     
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf', 'text/plain'];
+    // Validate file type - Only documents and text files
+    const validTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!validTypes.includes(file.type)) {
       setDocValidation({
         isValid: false,
-        message: 'Invalid file type. Please upload JPG, PNG, PDF, or TXT files only.',
+        message: 'Invalid file type. Please upload PDF, TXT, DOC, or DOCX documents only. Images are not supported for document upload.',
         missingFields: []
       });
       setIsProcessingDoc(false);
@@ -189,7 +189,7 @@ const CropHealth = () => {
 }`;
         
         const response = await FarmerAI.callAPI(
-          `Analyze this crop document for completeness. Required fields: cropType, plantingDate, fieldSize, symptoms, location. Document: ${file.type.includes('image') ? fileData : 'Text content: ' + fileData}`,
+          `Analyze this crop document for completeness. Required fields: cropType, plantingDate, fieldSize, symptoms, location. Document content: ${fileData}`,
           systemPrompt
         );
         
@@ -219,11 +219,8 @@ const CropHealth = () => {
         }
       };
       
-      if (file.type.includes('image')) {
-        reader.readAsDataURL(file);
-      } else {
-        reader.readAsText(file);
-      }
+      // Read all files as text since we only accept documents
+      reader.readAsText(file);
     } catch (error) {
       console.error('Document processing error:', error);
       setDocValidation({
@@ -567,7 +564,7 @@ const CropHealth = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.txt"
+              accept=".pdf,.txt,.doc,.docx"
               onChange={handleDocumentUpload}
               className="hidden"
             />
