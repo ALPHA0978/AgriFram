@@ -332,7 +332,7 @@ const Monitoring = () => {
                 )}
               </button>
               <button
-                onClick={isListening ? stopVoiceInput : startVoiceInput}
+                 onClick={isListening ? stopVoiceInput : startVoiceInput}
                 disabled={isAnalyzing || isProcessingDoc}
                 className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${
                   isListening 

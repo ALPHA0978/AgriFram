@@ -9,6 +9,7 @@ import Contact from './pages/Contact';
 import Login from './pages/Login';
 import FarmingTool from './components/FarmingTool';
 import SoilAnalysis from './pages/SoilAnalysis';
+import GeoSoilAnalysis from './pages/GeoSoilAnalysis';
 import CropHealth from './pages/CropHealth';
 import Monitoring from './pages/Monitoring';
 import MarketIntel from './pages/MarketIntel';
@@ -33,6 +34,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/farming-tool" element={<FarmingTool />} />
           <Route path="/soil-analysis" element={<SoilAnalysis />} />
+          <Route path="/geo-soil-analysis" element={<GeoSoilAnalysis />} />
           <Route path="/crop-health" element={<CropHealth />} />
           <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/market-intel" element={<MarketIntel />} />

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Leaf, Beaker, Camera, Satellite, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Leaf, Beaker, Camera, Satellite, TrendingUp, MapPin } from 'lucide-react';
 
 const SustainableFarmingTool = () => {
   const navigate = useNavigate();
@@ -33,6 +33,13 @@ const SustainableFarmingTool = () => {
       description: 'Market analysis, price trends, and profitability insights',
       icon: <TrendingUp className="w-6 h-6" />,
       path: '/market-intel'
+    },
+    {
+      id: 'geo-soil',
+      title: 'Geo Soil Analysis',
+      description: 'Location-based soil data analysis with nearby field insights within 1km range',
+      icon: <MapPin className="w-6 h-6" />,
+      path: '/geo-soil-analysis'
     }
   ];
 
@@ -75,8 +82,41 @@ const SustainableFarmingTool = () => {
         </div>
 
         {/* Module Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {modules.map((module) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {modules.slice(0, 4).map((module) => (
+            <div
+              key={module.id}
+              className="bg-gray-900/50 rounded-3xl p-6 border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-filter backdrop-blur-sm transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer"
+              onClick={() => navigate(module.path)}
+            >
+              <div className="bg-green-400/10 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-green-400/20 transition-all duration-300">
+                <div className="w-6 h-6 text-green-400">{module.icon}</div>
+              </div>
+              <h3 className="text-xl font-bold mb-3 text-white group-hover:text-green-400 transition-colors duration-300">{module.title}</h3>
+              <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+                {module.description}
+              </p>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-gray-400 text-xs">Status</span>
+                  <span className="text-green-400 font-medium text-xs">Ready</span>
+                </div>
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-gray-400 text-xs">Analysis</span>
+                  <span className="text-white font-medium text-xs">Real-time</span>
+                </div>
+              </div>
+              <button className="w-full bg-green-500 hover:bg-green-600 text-white font-medium rounded-full px-4 py-2 text-sm transition-all duration-300 transform group-hover:scale-105 shadow-lg hover:shadow-green-500/30">
+                Launch {module.title}
+              </button>
+            </div>
+          ))}
+        </div>
+        
+        {/* Additional Module */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16 justify-center">
+          {modules.slice(4).map((module) => (
+
             <div
               key={module.id}
               className="bg-gray-900/50 rounded-3xl p-6 border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-filter backdrop-blur-sm transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 group cursor-pointer"
