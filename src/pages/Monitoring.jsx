@@ -4,6 +4,7 @@ import { ArrowLeft, Satellite, BarChart3, Droplets, Thermometer, AlertTriangle, 
 import { FarmerAI } from '../services/huggingFaceService';
 import { BaseAI } from '../services/baseAI';
 import { useTranslation } from 'react-i18next';
+import { validateInput, getFieldLimits } from '../utils/validationLimits';
 
 const Monitoring = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Monitoring = () => {
   const [isListening, setIsListening] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [docValidation, setDocValidation] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -263,56 +265,161 @@ const Monitoring = () => {
                   <Droplets className="w-4 h-4 inline mr-1" />
                   Soil Moisture (%)
                 </label>
-                <input
-                  type="text"
-                  value={sensorData.soilMoisture}
-                  onChange={(e) => setSensorData(prev => ({...prev, soilMoisture: e.target.value}))}
-                  placeholder="35"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={sensorData.soilMoisture}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setSensorData(prev => ({...prev, soilMoisture: newValue}));
+                      
+                      const validation = validateInput(newValue, 'soilMoisture', 'monitoring');
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        soilMoisture: validation.isValid ? null : validation.message
+                      }));
+                    }}
+                    placeholder="35"
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      validationErrors.soilMoisture 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                    }`}
+                  />
+                  {validationErrors.soilMoisture && (
+                    <p className="text-red-400 text-xs mt-1">{validationErrors.soilMoisture}</p>
+                  )}
+                  {getFieldLimits('soilMoisture', 'monitoring') && (
+                    <p className="text-gray-500 text-xs mt-1">Range: {getFieldLimits('soilMoisture', 'monitoring')}</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   <Thermometer className="w-4 h-4 inline mr-1" />
                   Air Temperature (°C)
                 </label>
-                <input
-                  type="text"
-                  value={sensorData.airTemperature}
-                  onChange={(e) => setSensorData(prev => ({...prev, airTemperature: e.target.value}))}
-                  placeholder="28"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={sensorData.airTemperature}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setSensorData(prev => ({...prev, airTemperature: newValue}));
+                      
+                      const validation = validateInput(newValue, 'airTemperature', 'monitoring');
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        airTemperature: validation.isValid ? null : validation.message
+                      }));
+                    }}
+                    placeholder="28"
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      validationErrors.airTemperature 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                    }`}
+                  />
+                  {validationErrors.airTemperature && (
+                    <p className="text-red-400 text-xs mt-1">{validationErrors.airTemperature}</p>
+                  )}
+                  {getFieldLimits('airTemperature', 'monitoring') && (
+                    <p className="text-gray-500 text-xs mt-1">Range: {getFieldLimits('airTemperature', 'monitoring')}</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Humidity (%)</label>
-                <input
-                  type="text"
-                  value={sensorData.humidity}
-                  onChange={(e) => setSensorData(prev => ({...prev, humidity: e.target.value}))}
-                  placeholder="65"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={sensorData.humidity}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setSensorData(prev => ({...prev, humidity: newValue}));
+                      
+                      const validation = validateInput(newValue, 'humidity', 'monitoring');
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        humidity: validation.isValid ? null : validation.message
+                      }));
+                    }}
+                    placeholder="65"
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      validationErrors.humidity 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                    }`}
+                  />
+                  {validationErrors.humidity && (
+                    <p className="text-red-400 text-xs mt-1">{validationErrors.humidity}</p>
+                  )}
+                  {getFieldLimits('humidity', 'monitoring') && (
+                    <p className="text-gray-500 text-xs mt-1">Range: {getFieldLimits('humidity', 'monitoring')}</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Light Intensity (lux)</label>
-                <input
-                  type="text"
-                  value={sensorData.lightIntensity}
-                  onChange={(e) => setSensorData(prev => ({...prev, lightIntensity: e.target.value}))}
-                  placeholder="45000"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={sensorData.lightIntensity}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setSensorData(prev => ({...prev, lightIntensity: newValue}));
+                      
+                      const validation = validateInput(newValue, 'lightIntensity', 'monitoring');
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        lightIntensity: validation.isValid ? null : validation.message
+                      }));
+                    }}
+                    placeholder="45000"
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      validationErrors.lightIntensity 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                    }`}
+                  />
+                  {validationErrors.lightIntensity && (
+                    <p className="text-red-400 text-xs mt-1">{validationErrors.lightIntensity}</p>
+                  )}
+                  {getFieldLimits('lightIntensity', 'monitoring') && (
+                    <p className="text-gray-500 text-xs mt-1">Range: {getFieldLimits('lightIntensity', 'monitoring')}</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Recent Rainfall (mm)</label>
-                <input
-                  type="text"
-                  value={sensorData.rainfall}
-                  onChange={(e) => setSensorData(prev => ({...prev, rainfall: e.target.value}))}
-                  placeholder="12"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={sensorData.rainfall}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setSensorData(prev => ({...prev, rainfall: newValue}));
+                      
+                      const validation = validateInput(newValue, 'rainfall', 'monitoring');
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        rainfall: validation.isValid ? null : validation.message
+                      }));
+                    }}
+                    placeholder="12"
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      validationErrors.rainfall 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                    }`}
+                  />
+                  {validationErrors.rainfall && (
+                    <p className="text-red-400 text-xs mt-1">{validationErrors.rainfall}</p>
+                  )}
+                  {getFieldLimits('rainfall', 'monitoring') && (
+                    <p className="text-gray-500 text-xs mt-1">Range: {getFieldLimits('rainfall', 'monitoring')}</p>
+                  )}
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
@@ -356,7 +463,7 @@ const Monitoring = () => {
               </button>
               <button
                 onClick={analyzeMonitoringData}
-                disabled={!sensorData.soilMoisture || isAnalyzing || isProcessingDoc || isListening}
+                disabled={!sensorData.soilMoisture || Object.values(validationErrors).some(error => error) || isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isAnalyzing ? (

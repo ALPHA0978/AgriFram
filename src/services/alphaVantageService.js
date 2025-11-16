@@ -2,9 +2,33 @@ const ALPHA_VANTAGE_API_URL = 'https://www.alphavantage.co/query';
 const API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_API_KEY;
 
 export class AlphaVantageService {
+  static validateSymbol(symbol) {
+    if (!symbol || typeof symbol !== 'string') return false;
+    return /^[A-Z0-9.]{1,10}$/.test(symbol.toUpperCase());
+  }
+
+  static sanitizeInput(input) {
+    if (typeof input !== 'string') return '';
+    return input.replace(/[^A-Za-z0-9.,]/g, '').substring(0, 50);
+  }
+
   static async getCommodityPrice(symbol) {
+    if (!this.validateSymbol(symbol)) {
+      throw new Error('Invalid symbol format');
+    }
+
+    const sanitizedSymbol = this.sanitizeInput(symbol);
+    
     try {
-      const response = await fetch(`${ALPHA_VANTAGE_API_URL}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`);
+      const url = new URL(ALPHA_VANTAGE_API_URL);
+      url.searchParams.set('function', 'GLOBAL_QUOTE');
+      url.searchParams.set('symbol', sanitizedSymbol);
+      url.searchParams.set('apikey', API_KEY);
+      
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
       const data = await response.json();
       return data['Global Quote'];
     } catch (error) {
@@ -15,7 +39,14 @@ export class AlphaVantageService {
 
   static async getTopGainersLosers() {
     try {
-      const response = await fetch(`${ALPHA_VANTAGE_API_URL}?function=TOP_GAINERS_LOSERS&apikey=${API_KEY}`);
+      const url = new URL(ALPHA_VANTAGE_API_URL);
+      url.searchParams.set('function', 'TOP_GAINERS_LOSERS');
+      url.searchParams.set('apikey', API_KEY);
+      
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
       const data = await response.json();
       return data;
     } catch (error) {
@@ -25,8 +56,19 @@ export class AlphaVantageService {
   }
 
   static async getMarketNews(tickers = '') {
+    const sanitizedTickers = this.sanitizeInput(tickers);
+    
     try {
-      const response = await fetch(`${ALPHA_VANTAGE_API_URL}?function=NEWS_SENTIMENT&tickers=${tickers}&limit=10&apikey=${API_KEY}`);
+      const url = new URL(ALPHA_VANTAGE_API_URL);
+      url.searchParams.set('function', 'NEWS_SENTIMENT');
+      url.searchParams.set('tickers', sanitizedTickers);
+      url.searchParams.set('limit', '10');
+      url.searchParams.set('apikey', API_KEY);
+      
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
       const data = await response.json();
       return data;
     } catch (error) {

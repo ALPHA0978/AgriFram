@@ -1,11 +1,32 @@
 import { BaseAI } from './baseAI.js';
+import { sanitizeObject } from '../utils/sanitize.js';
 
 export class FarmerAI extends BaseAI {
+  static sanitizeInputData(data) {
+    return sanitizeObject(data);
+  }
   static async analyzeCrop(cropData) {
     try {
-      console.log('FarmerAI: Starting crop analysis for:', cropData);
+      // Sanitize input data to prevent XSS
+      const sanitizedData = this.sanitizeInputData(cropData);
+      console.log('FarmerAI: Starting crop analysis for:', sanitizedData);
       
-      const systemPrompt = `You are a crop health expert. Return ONLY valid JSON with no additional text:
+      const systemPrompt = `You are an expert plant pathologist and agronomist with 20+ years of field experience.
+
+CROP HEALTH ANALYSIS RULES:
+- Analyze symptoms scientifically
+- Identify diseases based on actual plant pathology
+- Recommend proven treatments with realistic costs
+- Consider growth stage for accurate assessment
+- Factor in weather and environmental conditions
+
+DISEASE SEVERITY LEVELS:
+- Low: <10% crop affected, minor yield impact
+- Medium: 10-30% affected, moderate yield loss
+- High: 30-60% affected, significant damage
+- Critical: >60% affected, crop failure risk
+
+Return ONLY valid JSON:
 {
   "cropHealth": "Excellent|Good|Fair|Poor|Critical",
   "healthScore": 85,
@@ -34,7 +55,19 @@ export class FarmerAI extends BaseAI {
   "costAnalysis": {"totalCare": "₹5000-8000", "expectedRevenue": "₹25000-35000", "profitMargin": "60-70%"}
 }`;
 
-      const response = await this.callAPI(`Analyze crop: ${cropData.cropType} (${cropData.variety || 'standard variety'}), Growth: ${cropData.growthStage || 'unknown'}, Planted: ${cropData.plantingDate}, Size: ${cropData.fieldSize} acres, Symptoms: ${cropData.symptoms}, Fertilizer: ${cropData.fertilizer || 'none'}, Pesticide: ${cropData.pesticide || 'none'}, Irrigation: ${cropData.irrigationMethod || 'unknown'}, Location: ${cropData.location}, Weather: ${cropData.weatherConditions}`, systemPrompt);
+      const response = await this.callAPI(`CROP HEALTH ASSESSMENT:
+Crop: ${sanitizedData.cropType} (${sanitizedData.variety || 'standard variety'})
+Growth Stage: ${sanitizedData.growthStage || 'unknown'}
+Planting Date: ${sanitizedData.plantingDate}
+Field Size: ${sanitizedData.fieldSize} acres
+Observed Symptoms: ${sanitizedData.symptoms}
+Current Fertilizer: ${sanitizedData.fertilizer || 'none applied'}
+Pesticide Used: ${sanitizedData.pesticide || 'none applied'}
+Irrigation Method: ${sanitizedData.irrigationMethod || 'unknown'}
+Location: ${sanitizedData.location}
+Weather Conditions: ${sanitizedData.weatherConditions}
+
+Provide scientific crop health diagnosis with accurate disease identification and proven treatment recommendations.`, systemPrompt);
       console.log('FarmerAI: Raw crop response:', response);
       
       const parsed = this.parseJSON(response);
@@ -49,9 +82,25 @@ export class FarmerAI extends BaseAI {
 
   static async analyzeSoil(soilSample) {
     try {
-      console.log('FarmerAI: Starting soil analysis for:', soilSample);
+      // Sanitize input data to prevent XSS
+      const sanitizedSample = this.sanitizeInputData(soilSample);
+      console.log('FarmerAI: Starting soil analysis for:', sanitizedSample);
       
-      const systemPrompt = `You are a soil analysis expert. You MUST return exactly 5 crops in suitableCrops array. Return ONLY valid JSON with no additional text:
+      const systemPrompt = `You are an expert agricultural soil scientist with 20+ years of experience. Analyze soil data scientifically.
+
+SOIL ANALYSIS RULES:
+- pH 0-5.5: Acidic (add lime, grow tea, potatoes)
+- pH 5.5-6.5: Slightly acidic (ideal for most crops)
+- pH 6.5-7.5: Neutral (excellent for vegetables, grains)
+- pH 7.5-8.5: Alkaline (add sulfur, grow barley)
+- pH >8.5: Highly alkaline (major amendments needed)
+
+NUTRIENT LEVELS (ppm):
+- Nitrogen: <20=Low, 20-40=Medium, >40=High
+- Phosphorus: <15=Low, 15-30=Medium, >30=High
+- Potassium: <100=Low, 100-200=Medium, >200=High
+
+Return ONLY valid JSON:
 {
   "soilType": "soil classification",
   "pH": "pH level and recommendations",
@@ -114,7 +163,17 @@ export class FarmerAI extends BaseAI {
   ]
 }`;
 
-      const response = await this.callAPI(`Analyze soil with pH:${soilSample.ph}, N:${soilSample.nitrogen}ppm, P:${soilSample.phosphorus}ppm, K:${soilSample.potassium}ppm, Moisture:${soilSample.moisture}%, Organic:${soilSample.organicMatter}%. IMPORTANT: You MUST provide exactly 5 different crops in the suitableCrops array. Do not provide less than 5 crops.`, systemPrompt);
+      const response = await this.callAPI(`SOIL ANALYSIS:
+PH: ${sanitizedSample.ph}
+Nitrogen: ${sanitizedSample.nitrogen} ppm
+Phosphorus: ${sanitizedSample.phosphorus} ppm
+Potassium: ${sanitizedSample.potassium} ppm
+Moisture: ${sanitizedSample.moisture}%
+Organic Matter: ${sanitizedSample.organicMatter}%
+Temperature: ${sanitizedSample.temperature}°C
+Salinity: ${sanitizedSample.salinity} dS/m
+
+Provide scientific analysis with exactly 5 crops suitable for these conditions.`, systemPrompt);
       console.log('FarmerAI: Raw API response:', response);
       
       const parsed = this.parseJSON(response);
@@ -128,7 +187,23 @@ export class FarmerAI extends BaseAI {
   }
 
   static async optimizeIrrigation(farmData) {
-    const systemPrompt = `You are an IoT farming specialist. Return ONLY valid JSON with no additional text:
+    // Sanitize input data to prevent XSS
+    const sanitizedData = this.sanitizeInputData(farmData);
+    
+    const systemPrompt = `You are an expert precision agriculture specialist with IoT and sensor technology expertise.
+
+SENSOR ANALYSIS RULES:
+- Soil Moisture: <30%=Low, 30-60%=Optimal, >60%=High
+- Air Temperature: <15°C=Low, 15-30°C=Optimal, >30°C=High
+- Humidity: <40%=Low, 40-70%=Optimal, >70%=High
+- Light Intensity: <20000 lux=Low, 20000-50000=Good, >50000=High
+
+IRRIGATION SCHEDULING:
+- Morning irrigation (6-8 AM) most efficient
+- Avoid midday watering (water loss)
+- Evening watering can cause fungal issues
+
+Return ONLY valid JSON:
 {
   "overallStatus": "Optimal|Good|Warning|Critical",
   "alerts": [
@@ -176,7 +251,14 @@ export class FarmerAI extends BaseAI {
   }
 }`;
 
-    const response = await this.callAPI(`IoT sensor analysis: Soil Moisture: ${farmData.soilMoisture}%, Air Temperature: ${farmData.airTemperature}°C, Humidity: ${farmData.humidity}%, Light: ${farmData.lightIntensity} lux, Rainfall: ${farmData.rainfall}mm. Provide comprehensive monitoring insights and optimization recommendations.`, systemPrompt);
+    const response = await this.callAPI(`IOT SENSOR MONITORING:
+Soil Moisture: ${sanitizedData.soilMoisture}%
+Air Temperature: ${sanitizedData.airTemperature}°C
+Humidity: ${sanitizedData.humidity}%
+Light Intensity: ${sanitizedData.lightIntensity} lux
+Recent Rainfall: ${sanitizedData.rainfall}mm
+
+Analyze sensor data scientifically and provide precise irrigation scheduling, climate optimization, and actionable farming recommendations based on current conditions.`, systemPrompt);
     return this.parseJSON(response) || this.getDefaultIrrigation();
   }
 

@@ -5,17 +5,17 @@ const LanguageSwitcher = () => {
   const { i18n } = useTranslation()
   const value = i18n.language?.startsWith('hi') ? 'hi' : 'en'
   const options = [
-    { value: 'en', label: 'English' },
-    { value: 'hi', label: 'हिंदी' },
+    { value: 'en', label: 'EN' },
+    { value: 'hi', label: 'हि' },
   ]
 
   return (
-    <div className="w-36">
+    <div className="w-16 sm:w-20">
       <CustomDropdown
         value={value}
         onChange={(lng) => i18n.changeLanguage(lng)}
         options={options}
-        placeholder="Language"
+        placeholder="EN"
       />
     </div>
   )

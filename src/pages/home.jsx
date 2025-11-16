@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Leaf, ArrowRight, Cloud, Droplet, Wind, Thermometer, TrendingUp, Cpu, Wrench, Menu, X, ArrowUpRight, Stethoscope } from 'lucide-react';
-import Prism from '../components/Prism';
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -36,53 +36,7 @@ const Home = () => {
         </defs>
       </svg>
       
-      {/* Prism Background */}
-      <div className="absolute inset-0 z-0 opacity-30">
-        <Prism
-          animationType="rotate"
-          timeScale={0.3}
-          height={2.5}
-          baseWidth={2}
-          scale={2}
-          hueShift={0.96}
-          colorFrequency={0.25}
-          noise={0}
-          glow={1.2}
-        />
-      </div>
-      
-      {/* Alternative Prism Configurations (Commented for experimentation) */}
-      {/* More intense version: */}
-      {/* <div className="absolute inset-0 z-0 opacity-40">
-        <Prism
-          animationType="rotate"
-          timeScale={0.5}
-          height={5.0}
-          baseWidth={7.0}
-          scale={3.2}
-          hueShift={0.6}
-          colorFrequency={1.2}
-          noise={0.4}
-          glow={1.5}
-          transparent={true}
-        />
-      </div> */}
-      
-      {/* Subtle version: */}
-      {/* <div className="absolute inset-0 z-0 opacity-20">
-        <Prism
-          animationType="rotate"
-          timeScale={0.2}
-          height={3.0}
-          baseWidth={5.0}
-          scale={2.0}
-          hueShift={0.2}
-          colorFrequency={0.5}
-          noise={0.1}
-          glow={0.5}
-          transparent={true}
-        />
-      </div> */}
+
       
       {/* Enhanced Background Effects & Decorative Elements */}
       <div className="absolute inset-0 z-1 pointer-events-none">
@@ -112,24 +66,7 @@ const Home = () => {
         
 
         
-        {/* Additional Prism-Enhanced Lighting Effects (Commented for future use) */}
-        {/* <div className="absolute top-10 left-10 w-64 h-64 bg-blue-400 rounded-full mix-blend-screen filter blur-2xl opacity-25 animate-pulse animation-delay-1000"></div> */}
-        {/* <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-500 rounded-full mix-blend-screen filter blur-2xl opacity-20 animate-pulse animation-delay-3000"></div> */}
-        {/* <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-cyan-400 rounded-full mix-blend-screen filter blur-xl opacity-30 animate-pulse animation-delay-4000"></div> */}
-        {/* <div className="absolute bottom-1/3 left-1/4 w-56 h-56 bg-teal-500 rounded-full mix-blend-screen filter blur-xl opacity-25 animate-pulse animation-delay-5000"></div> */}
-        
 
-        
-        {/* Additional Prism-Themed Decorative Elements (Commented for future use) */}
-        {/* <div className="absolute top-1/2 left-20 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full filter blur-sm opacity-40 animate-pulse animation-delay-6000"></div> */}
-        {/* <div className="absolute bottom-1/2 right-20 w-40 h-40 bg-gradient-to-tl from-cyan-400/15 to-teal-500/15 rounded-full filter blur-sm opacity-35 animate-pulse animation-delay-7000"></div> */}
-        
-
-        
-        {/* Additional Prism-Complementary Light Rays (Commented for future use) */}
-        {/* <div className="absolute top-0 left-1/2 w-0.5 h-full bg-gradient-to-b from-blue-400/15 via-transparent to-transparent transform rotate-6 animate-pulse animation-delay-2000"></div> */}
-        {/* <div className="absolute top-0 right-1/2 w-0.5 h-full bg-gradient-to-b from-purple-400/10 via-transparent to-transparent transform -rotate-6 animate-pulse animation-delay-3000"></div> */}
-        {/* <div className="absolute top-0 left-1/4 w-0.5 h-full bg-gradient-to-b from-cyan-300/12 via-transparent to-transparent transform rotate-18 animate-pulse animation-delay-4000"></div> */}
       </div>
       
       {/* Navbar */}
@@ -150,14 +87,17 @@ const Home = () => {
             </div>
           </div>
           
-          {/* Contact Button (Desktop) */}
-          <button 
-            onClick={() => navigate('/contact')} 
-            className="hidden md:flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
-          >
-            <span>{t('nav.contact')}</span>
-            <ArrowUpRight className="w-4 h-4 ml-1" />
-          </button>
+          {/* Language Switcher & Contact Button (Desktop) */}
+          <div className="hidden md:flex items-center space-x-4">
+            <LanguageSwitcher />
+            <button 
+              onClick={() => navigate('/contact')} 
+              className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
+            >
+              <span>{t('nav.contact')}</span>
+              <ArrowUpRight className="w-4 h-4 ml-1" />
+            </button>
+          </div>
 
           {/* Mobile Menu Button */}
           <button 
@@ -177,6 +117,9 @@ const Home = () => {
           </button>
         </div>
         <div className="flex flex-col items-center space-y-8 mt-16">
+          <div className="mb-4">
+            <LanguageSwitcher />
+          </div>
           <button onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-green-400">{t('nav.home')}</button>
           <button onClick={() => { navigate('/about'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.about')}</button>
           <button onClick={() => { navigate('/analysis'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.analysis')}</button>

@@ -35,12 +35,12 @@ const CustomDropdown = ({ value, onChange, options, placeholder, className = "",
       <button
         type="button"
         onClick={toggleDropdown}
-        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 flex items-center justify-between"
+        className="w-full px-2 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 flex items-center justify-between text-sm sm:text-base"
       >
         <span className={selectedOption ? 'text-white' : 'text-gray-400'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
@@ -50,7 +50,7 @@ const CustomDropdown = ({ value, onChange, options, placeholder, className = "",
               key={option.value}
               type="button"
               onClick={() => handleSelect(option.value)}
-              className="w-full px-4 py-3 text-left text-white hover:bg-green-400/10 hover:text-green-400 transition-all duration-200 first:rounded-t-lg last:rounded-b-lg"
+              className="w-full px-2 py-2 sm:px-4 sm:py-3 text-left text-white hover:bg-green-400/10 hover:text-green-400 transition-all duration-200 first:rounded-t-lg last:rounded-b-lg text-sm sm:text-base"
             >
               {option.label}
             </button>

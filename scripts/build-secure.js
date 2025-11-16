@@ -10,13 +10,25 @@ import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.join(__dirname, '..');
+const projectRoot = path.resolve(__dirname, '..');
+
+// Validate project root is within expected bounds
+if (!projectRoot.includes('harsh_hackthon_project')) {
+  console.error('❌ Invalid project root detected');
+  process.exit(1);
+}
 
 console.log('🔒 Starting secure build process for AgriFarmAI...');
 
-// Backup original .env file
-const envPath = path.join(projectRoot, '.env');
-const envBackupPath = path.join(projectRoot, '.env.backup');
+// Backup original .env file with path validation
+const envPath = path.resolve(projectRoot, '.env');
+const envBackupPath = path.resolve(projectRoot, '.env.backup');
+
+// Validate paths are within project directory
+if (!envPath.startsWith(projectRoot) || !envBackupPath.startsWith(projectRoot)) {
+  console.error('❌ Path traversal attempt detected');
+  process.exit(1);
+}
 
 if (fs.existsSync(envPath)) {
   fs.copyFileSync(envPath, envBackupPath);
@@ -39,14 +51,27 @@ VITE_BUILD_TIME=${new Date().toISOString()}
   console.log('✅ Build completed successfully');
 
   // Verify no API keys in build
-  const distPath = path.join(projectRoot, 'dist');
-  if (fs.existsSync(distPath)) {
-    const jsFiles = fs.readdirSync(path.join(distPath, 'assets'))
-      .filter(file => file.endsWith('.js'));
+  const distPath = path.resolve(projectRoot, 'dist');
+  const assetsPath = path.resolve(distPath, 'assets');
+  
+  // Validate paths
+  if (!distPath.startsWith(projectRoot) || !assetsPath.startsWith(distPath)) {
+    console.error('❌ Invalid build path detected');
+    process.exit(1);
+  }
+  
+  if (fs.existsSync(distPath) && fs.existsSync(assetsPath)) {
+    const jsFiles = fs.readdirSync(assetsPath)
+      .filter(file => file.endsWith('.js') && !file.includes('..'));
     
     let credentialsFound = false;
     jsFiles.forEach(file => {
-      const content = fs.readFileSync(path.join(distPath, 'assets', file), 'utf8');
+      const filePath = path.resolve(assetsPath, file);
+      if (!filePath.startsWith(assetsPath)) {
+        console.warn(`⚠️  Skipping invalid file path: ${file}`);
+        return;
+      }
+      const content = fs.readFileSync(filePath, 'utf8');
       if (content.includes('hf_') || content.includes('sk-')) {
         console.warn(`⚠️  API credentials found in ${file}`);
         credentialsFound = true;

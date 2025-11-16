@@ -1,4 +1,12 @@
 export class BaseAI {
+  static sanitizeInput(input) {
+    if (typeof input !== 'string') return '';
+    return input.replace(/<script[^>]*>.*?<\/script>/gi, '')
+                .replace(/<[^>]*>/g, '')
+                .trim()
+                .substring(0, 10000); // Limit input length
+  }
+
   static async callAPI(prompt, systemPrompt = '') {
     const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
     
@@ -6,10 +14,18 @@ export class BaseAI {
       throw new Error('OpenRouter API key not found');
     }
 
+    // Sanitize inputs
+    const sanitizedPrompt = this.sanitizeInput(prompt);
+    const sanitizedSystemPrompt = this.sanitizeInput(systemPrompt);
+
+    if (!sanitizedPrompt) {
+      throw new Error('Invalid or empty prompt provided');
+    }
+
     try {
       const messages = [
-        ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
-        { role: "user", content: prompt }
+        ...(sanitizedSystemPrompt ? [{ role: "system", content: sanitizedSystemPrompt }] : []),
+        { role: "user", content: sanitizedPrompt }
       ];
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -17,12 +33,13 @@ export class BaseAI {
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest', // CSRF protection
         },
         body: JSON.stringify({
           model: "nvidia/nemotron-nano-9b-v2:free",
           messages: messages,
-          max_tokens: 2000,
-          temperature: 0.1
+          max_tokens: 3000,
+          temperature: 0.2
         })
       });
 
@@ -31,7 +48,11 @@ export class BaseAI {
       }
 
       const data = await response.json();
-      return data.choices[0]?.message?.content || 'Analysis completed successfully';
+      const content = data.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('Empty response from AI model');
+      }
+      return content;
     } catch (error) {
       console.error('BaseAI API Error:', error);
       throw error;

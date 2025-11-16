@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
+import { initDevToolsBlocker } from './utils/devToolsBlocker';
 import Home from './pages/Home';
 import About from './pages/About';
 import AIAnalytics from './pages/AIAnalytics';
@@ -19,9 +21,19 @@ import MedicalVitals from './pages/MedicalVitals';
 import MedicalPredictor from './pages/MedicalPredictor';
 import MedicalAnalytics from './pages/MedicalAnalytics';
 import ProtectedRoute from './components/ProtectedRoute';
-import LanguageSwitcher from './components/LanguageSwitcher';
+
 
 function App() {
+  useEffect(() => {
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname === '0.0.0.0';
+    
+    if (!isLocalhost) {
+      initDevToolsBlocker();
+    }
+  }, []);
+  
   return (
     <AuthProvider>
       <Router>
@@ -45,9 +57,7 @@ function App() {
           <Route path="/medical-predictor" element={<ProtectedRoute><MedicalPredictor /></ProtectedRoute>} />
           <Route path="/medical-analytics" element={<ProtectedRoute><MedicalAnalytics /></ProtectedRoute>} />
         </Routes>
-        <div className="fixed top-3 right-3 z-[9999]">
-          <LanguageSwitcher />
-        </div>
+
       </Router>
     </AuthProvider>
   );

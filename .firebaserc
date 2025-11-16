@@ -1,7 +1,8 @@
 {
   "projects": {
     "default": "agrifarm-ai",
-    "staging": "agrifarm-ai"
+    "staging": "agrifarm-ai",
+    "dist": "harsh-sih-project"
   },
   "targets": {},
   "etags": {}

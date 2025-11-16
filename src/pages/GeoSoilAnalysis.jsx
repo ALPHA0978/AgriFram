@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Beaker, BarChart3, Loader, AlertTriangle, CheckCircle, Upload, FileText, Mic, MicOff, Navigation, Target } from 'lucide-react';
+import { ArrowLeft, MapPin, Beaker, BarChart3, Loader, AlertTriangle, CheckCircle, Upload, FileText, Mic, MicOff, Navigation, Target, Ban } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 
 const GeoSoilAnalysis = () => {
@@ -26,6 +26,7 @@ const GeoSoilAnalysis = () => {
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isLoadingNearbyData, setIsLoadingNearbyData] = useState(false);
+  const [dataSource, setDataSource] = useState('manual'); // 'manual', 'document', 'voice', 'location'
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -95,6 +96,7 @@ const GeoSoilAnalysis = () => {
         setNearbyFields(parsed.nearbyFields);
         if (parsed.averageData) {
           setSoilData(prev => ({ ...prev, ...parsed.averageData }));
+          setDataSource('location');
         }
       }
     } catch (error) {
@@ -186,6 +188,7 @@ const GeoSoilAnalysis = () => {
           );
           
           setSoilData(prev => ({ ...prev, ...validData }));
+          setDataSource('document');
           
           setDocValidation({
             isValid: parsed.validation.isComplete,
@@ -297,6 +300,7 @@ const GeoSoilAnalysis = () => {
             Object.entries(parsed).filter(([_, value]) => value && value !== "")
           )
         }));
+        setDataSource('voice');
       }
     } catch (error) {
       console.error('Voice processing error:', error);
@@ -348,35 +352,16 @@ const GeoSoilAnalysis = () => {
               <MapPin className="w-8 h-8 text-blue-400" />
             </div>
             <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">Location & Nearby Fields</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <button
-                  onClick={getCurrentLocation}
-                  disabled={isGettingLocation || isLoadingNearbyData}
-                  className="flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed w-full"
-                >
-                  {isGettingLocation ? (
-                    <>
-                      <Loader className="w-5 h-5 animate-spin" />
-                      <span>Getting Location...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Navigation className="w-5 h-5" />
-                      <span>Get Current Location</span>
-                    </>
-                  )}
-                </button>
-                {location.lat && (
-                  <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <div className="flex items-center space-x-2 text-blue-400 mb-2">
-                      <MapPin className="w-4 h-4" />
-                      <span className="font-medium">Current Location:</span>
-                    </div>
-                    <p className="text-gray-300 text-sm">{location.address}</p>
+            <div className="grid grid-cols-1 gap-6">
+              {location.lat && (
+                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <div className="flex items-center space-x-2 text-blue-400 mb-2">
+                    <MapPin className="w-4 h-4" />
+                    <span className="font-medium">Current Location:</span>
                   </div>
-                )}
-              </div>
+                  <p className="text-gray-300 text-sm">{location.address}</p>
+                </div>
+              )}
               <div>
                 {isLoadingNearbyData && (
                   <div className="flex items-center justify-center space-x-2 text-blue-400">
@@ -406,25 +391,42 @@ const GeoSoilAnalysis = () => {
             <div className="bg-green-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6">
               <Beaker className="w-8 h-8 text-green-400" />
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">Soil Testing Data</h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl md:text-3xl font-bold text-white">Soil Testing Data</h3>
+              <span className="text-sm text-gray-400">
+                {Object.values(soilData).some(v => v) ? (
+                  <>Data from: <span className="text-green-400 capitalize">{dataSource}</span></>
+                ) : (
+                  <>Use automated functions to fill data</>
+                )}
+              </span>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {Object.entries(soilData).map(([key, value]) => (
                 <div key={key}>
-                  <label className="block text-sm font-medium text-gray-300 mb-2 capitalize">
+                  <label className="block text-sm font-medium text-gray-300 mb-2 capitalize flex items-center group">
                     {key.replace(/([A-Z])/g, ' $1').trim()} {
                       key === 'moisture' || key === 'organicMatter' ? '(%)' : 
                       key === 'temperature' ? '(°C)' : 
                       key === 'salinity' ? '(dS/m)' : 
                       '(ppm)'
                     }
+                    <Ban className="w-3 h-3 ml-1 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   </label>
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => setSoilData(prev => ({...prev, [key]: e.target.value}))}
-                    placeholder={`Enter ${key}`}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                  />
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      value={value}
+                      onChange={() => {}} // Always disabled
+                      onKeyDown={(e) => e.preventDefault()} // Always prevent typing
+                      onPaste={(e) => e.preventDefault()} // Always prevent pasting
+                      placeholder={value ? `Auto-filled from ${dataSource}` : `Use automated functions to fill`}
+                      readOnly={true} // Always read-only
+                      tabIndex={-1} // Always remove from tab order
+                      className="w-full px-4 py-3 border rounded-lg text-white transition-all duration-200 bg-gray-700/30 border-gray-600/30 placeholder-gray-500 cursor-not-allowed opacity-60 pointer-events-none select-none"
+                    />
+                    <Ban className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                  </div>
                 </div>
               ))}
             </div>

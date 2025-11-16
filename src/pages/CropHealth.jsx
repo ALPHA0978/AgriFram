@@ -4,6 +4,7 @@ import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, Do
 import { FarmerAI } from '../services/huggingFaceService';
 import CustomDropdown from '../components/CustomDropdown';
 import { useTranslation } from 'react-i18next';
+import { validateInput, getFieldLimits } from '../utils/validationLimits';
 
 const CropHealth = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ const CropHealth = () => {
   const [processingProgress, setProcessingProgress] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -390,23 +392,65 @@ const CropHealth = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Crop Type</label>
-                <input
-                  type="text"
-                  value={cropData.cropType}
-                  onChange={(e) => setCropData(prev => ({...prev, cropType: e.target.value}))}
-                  placeholder="e.g., Wheat, Rice, Tomato"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={cropData.cropType}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCropData(prev => ({...prev, cropType: newValue}));
+                      
+                      const validation = validateInput(newValue, 'cropType', 'crop');
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        cropType: validation.isValid ? null : validation.message
+                      }));
+                    }}
+                    placeholder="e.g., Wheat, Rice, Tomato"
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      validationErrors.cropType 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                    }`}
+                  />
+                  {validationErrors.cropType && (
+                    <p className="text-red-400 text-xs mt-1">{validationErrors.cropType}</p>
+                  )}
+                  {getFieldLimits('cropType', 'crop') && (
+                    <p className="text-gray-500 text-xs mt-1">{getFieldLimits('cropType', 'crop')}</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Crop Variety</label>
-                <input
-                  type="text"
-                  value={cropData.variety || ''}
-                  onChange={(e) => setCropData(prev => ({...prev, variety: e.target.value}))}
-                  placeholder="e.g., Basmati, IR64, Cherry"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={cropData.variety || ''}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCropData(prev => ({...prev, variety: newValue}));
+                      
+                      const validation = validateInput(newValue, 'variety', 'crop');
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        variety: validation.isValid ? null : validation.message
+                      }));
+                    }}
+                    placeholder="e.g., Basmati, IR64, Cherry"
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      validationErrors.variety 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                    }`}
+                  />
+                  {validationErrors.variety && (
+                    <p className="text-red-400 text-xs mt-1">{validationErrors.variety}</p>
+                  )}
+                  {getFieldLimits('variety', 'crop') && (
+                    <p className="text-gray-500 text-xs mt-1">{getFieldLimits('variety', 'crop')}</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Planting Date</label>
@@ -435,13 +479,34 @@ const CropHealth = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Field Size (acres)</label>
-                <input
-                  type="text"
-                  value={cropData.fieldSize}
-                  onChange={(e) => setCropData(prev => ({...prev, fieldSize: e.target.value}))}
-                  placeholder="5"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={cropData.fieldSize}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCropData(prev => ({...prev, fieldSize: newValue}));
+                      
+                      const validation = validateInput(newValue, 'fieldSize', 'crop');
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        fieldSize: validation.isValid ? null : validation.message
+                      }));
+                    }}
+                    placeholder="5"
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      validationErrors.fieldSize 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                    }`}
+                  />
+                  {validationErrors.fieldSize && (
+                    <p className="text-red-400 text-xs mt-1">{validationErrors.fieldSize}</p>
+                  )}
+                  {getFieldLimits('fieldSize', 'crop') && (
+                    <p className="text-gray-500 text-xs mt-1">Range: {getFieldLimits('fieldSize', 'crop')}</p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Irrigation Method</label>
@@ -558,7 +623,7 @@ const CropHealth = () => {
               </button>
               <button
                 onClick={analyzeCropWithAI}
-                disabled={!cropData.cropType || isAnalyzing || isProcessingDoc || isListening}
+                disabled={!cropData.cropType || Object.values(validationErrors).some(error => error) || isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-green-400 text-black py-4 rounded-lg hover:bg-green-300 transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 {isAnalyzing ? (

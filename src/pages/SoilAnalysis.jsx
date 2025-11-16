@@ -4,6 +4,7 @@ import { ArrowLeft, Beaker, BarChart3, DollarSign, Target, CheckCircle, Zap, Loa
 import { FarmerAI } from '../services/huggingFaceService';
 import { BaseAI } from '../services/baseAI';
 import { useTranslation } from 'react-i18next';
+import { validateInput, getFieldLimits } from '../utils/validationLimits';
 
 const SoilAnalysis = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const SoilAnalysis = () => {
   const [isListening, setIsListening] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const [docValidation, setDocValidation] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -272,13 +274,35 @@ const SoilAnalysis = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2 capitalize">
                     {key.replace(/([A-Z])/g, ' $1').trim()} {key === 'moisture' || key === 'organicMatter' ? '(%)' : key === 'temperature' ? '(°C)' : key === 'salinity' ? '(dS/m)' : '(ppm)'}
                   </label>
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => setSoilData(prev => ({...prev, [key]: e.target.value}))}
-                    placeholder={`Enter ${key}`}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
-                  />
+                  <div>
+                    <input
+                      type="text"
+                      value={value}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setSoilData(prev => ({...prev, [key]: newValue}));
+                        
+                        // Validate input
+                        const validation = validateInput(newValue, key, 'soil');
+                        setValidationErrors(prev => ({
+                          ...prev,
+                          [key]: validation.isValid ? null : validation.message
+                        }));
+                      }}
+                      placeholder={`Enter ${key}`}
+                      className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                        validationErrors[key] 
+                          ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                          : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                      }`}
+                    />
+                    {validationErrors[key] && (
+                      <p className="text-red-400 text-xs mt-1">{validationErrors[key]}</p>
+                    )}
+                    {getFieldLimits(key, 'soil') && (
+                      <p className="text-gray-500 text-xs mt-1">Range: {getFieldLimits(key, 'soil')}</p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -323,7 +347,7 @@ const SoilAnalysis = () => {
               </button>
               <button
                 onClick={analyzeSoilWithAI}
-                disabled={!soilData.ph || isAnalyzing || isProcessingDoc || isListening}
+                disabled={!soilData.ph || Object.values(validationErrors).some(error => error) || isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30 disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 {isAnalyzing ? (

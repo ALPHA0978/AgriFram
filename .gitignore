@@ -12,6 +12,23 @@ dist
 dist-ssr
 *.local
 
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.backup
+
+# Security and sensitive files
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+keys/
+credentials/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +39,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Firebase
+.firebase/
+.firebaserc
+firebase-debug.log
+
+# Build artifacts
+build/
+out/
+
+# Temporary files
+*.tmp
+*.temp

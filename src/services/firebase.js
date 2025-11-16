@@ -7,13 +7,13 @@ import { initializeApp } from "firebase/app";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyA4Dbwufjxq3lv6r1jWW-fFlHHRWpL7jec",
-  authDomain: "agrifarm-ai.firebaseapp.com",
-  projectId: "agrifarm-ai",
-  storageBucket: "agrifarm-ai.firebasestorage.app",
-  messagingSenderId: "1096566696583",
-  appId: "1:1096566696583:web:2cdbdb4e03df00bbcb2622",
-  measurementId: "G-XBTRT2YHE2"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
