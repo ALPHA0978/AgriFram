@@ -5,78 +5,333 @@ export class FarmerAI extends BaseAI {
   static sanitizeInputData(data) {
     return sanitizeObject(data);
   }
-  static async analyzeCrop(cropData) {
+  static async analyzeCrop(cropData, onStepUpdate = null) {
     try {
-      // Sanitize input data to prevent XSS
       const sanitizedData = this.sanitizeInputData(cropData);
-      console.log('FarmerAI: Starting crop analysis for:', sanitizedData);
       
-      const systemPrompt = `You are an expert plant pathologist and agronomist with 20+ years of field experience.
-
-CROP HEALTH ANALYSIS RULES:
-- Analyze symptoms scientifically
-- Identify diseases based on actual plant pathology
-- Recommend proven treatments with realistic costs
-- Consider growth stage for accurate assessment
-- Factor in weather and environmental conditions
-
-DISEASE SEVERITY LEVELS:
-- Low: <10% crop affected, minor yield impact
-- Medium: 10-30% affected, moderate yield loss
-- High: 30-60% affected, significant damage
-- Critical: >60% affected, crop failure risk
-
-Return ONLY valid JSON:
-{
-  "cropHealth": "Excellent|Good|Fair|Poor|Critical",
-  "healthScore": 85,
-  "growthStage": "current growth analysis",
-  "yieldPrediction": {"expected": "yield estimate", "factors": ["affecting factors"], "quality": "High|Medium|Low"},
-  "diseases": [
-    {"name": "disease name", "severity": "Low|Medium|High|Critical", "symptoms": ["symptoms"], "treatment": "treatment method", "cost": "₹500-1000", "urgency": "Immediate|Within week|Monitor"}
-  ],
-  "pests": [
-    {"name": "pest name", "damage": "damage description", "severity": "Low|Medium|High", "control": "control method", "cost": "₹300-800"}
-  ],
-  "nutritionDeficiency": [
-    {"nutrient": "N|P|K|Mg|Fe", "symptoms": ["deficiency signs"], "solution": "fertilizer recommendation", "dosage": "application rate"}
-  ],
-  "fertilizers": [
-    {"name": "fertilizer name", "quantity": "kg per acre", "timing": "when to apply", "cost": "₹1000-2000", "purpose": "growth|flowering|fruiting"}
-  ],
-  "irrigation": {"schedule": "watering frequency", "method": "best irrigation type", "waterNeeded": "liters per day", "efficiency": "current vs optimal"},
-  "harvest": {"optimalTime": "harvest date estimate", "indicators": ["ripeness signs"], "expectedYield": "quintals per acre", "marketTiming": "best selling time"},
-  "recommendations": {
-    "immediate": ["urgent actions needed"],
-    "weekly": ["actions for next week"],
-    "monthly": ["long-term care"]
-  },
-  "riskFactors": ["weather risks", "disease risks", "market risks"],
-  "costAnalysis": {"totalCare": "₹5000-8000", "expectedRevenue": "₹25000-35000", "profitMargin": "60-70%"}
-}`;
-
-      const response = await this.callAPI(`CROP HEALTH ASSESSMENT:
-Crop: ${sanitizedData.cropType} (${sanitizedData.variety || 'standard variety'})
-Growth Stage: ${sanitizedData.growthStage || 'unknown'}
-Planting Date: ${sanitizedData.plantingDate}
-Field Size: ${sanitizedData.fieldSize} acres
-Observed Symptoms: ${sanitizedData.symptoms}
-Current Fertilizer: ${sanitizedData.fertilizer || 'none applied'}
-Pesticide Used: ${sanitizedData.pesticide || 'none applied'}
-Irrigation Method: ${sanitizedData.irrigationMethod || 'unknown'}
-Location: ${sanitizedData.location}
-Weather Conditions: ${sanitizedData.weatherConditions}
-
-Provide scientific crop health diagnosis with accurate disease identification and proven treatment recommendations.`, systemPrompt);
-      console.log('FarmerAI: Raw crop response:', response);
+      // Step 1: Symptom Classification
+      onStepUpdate?.(1, 'Analyzing symptoms and classifying problem type...');
+      const symptomAnalysis = await this.analyzeSymptoms(sanitizedData);
       
-      const parsed = this.parseJSON(response);
-      console.log('FarmerAI: Parsed crop result:', parsed);
+      // Step 2: Disease/Pest Identification
+      onStepUpdate?.(2, 'Identifying specific disease, pest, or deficiency...');
+      const identification = await this.identifyIssue(sanitizedData, symptomAnalysis);
       
-      return parsed || this.getDefaultCropAnalysis();
+      // Step 3: Severity Assessment
+      onStepUpdate?.(3, 'Assessing severity and potential impact...');
+      const severityAssessment = await this.assessSeverity(sanitizedData, identification);
+      
+      // Step 4: Treatment Selection
+      onStepUpdate?.(4, 'Selecting optimal treatment strategy...');
+      const treatmentPlan = await this.selectTreatment(sanitizedData, identification, severityAssessment);
+      
+      // Step 5: Final Recommendations
+      onStepUpdate?.(5, 'Generating final recommendations and outcomes...');
+      const finalAnalysis = await this.generateFinalRecommendations(sanitizedData, {
+        symptoms: symptomAnalysis,
+        identification,
+        severity: severityAssessment,
+        treatment: treatmentPlan
+      });
+      
+      return finalAnalysis || this.getDefaultCropAnalysis();
     } catch (error) {
       console.error('FarmerAI: Crop analysis error:', error);
       return this.getDefaultCropAnalysis();
+    }
+  }
+
+  static async analyzeSymptoms(cropData) {
+    const systemPrompt = `You are a plant pathologist. Analyze symptoms and classify the problem type. Return ONLY valid JSON:
+{
+  "problemType": "Bacterial Disease|Fungal Disease|Pest Infestation|Nutrient Deficiency|Viral Disease|Environmental Stress|Healthy",
+  "confidence": 85,
+  "keySymptoms": ["primary symptoms observed"],
+  "affectedParts": ["leaves|stems|roots|fruits"],
+  "pattern": "localized|widespread|progressive|random",
+  "urgency": "Immediate|Within week|Monitor|Routine"
+}`;
+
+    const response = await this.callAPI(`SYMPTOM ANALYSIS:
+Crop: ${cropData.cropType}
+Symptoms: ${cropData.symptoms || 'No specific symptoms'}
+Growth Stage: ${cropData.growthStage}
+Weather: ${cropData.weatherConditions}
+
+Classify the problem type based on symptoms.`, systemPrompt);
+    
+    return this.parseJSON(response) || {problemType: 'Healthy', confidence: 50};
+  }
+
+  static async identifyIssue(cropData, symptomAnalysis) {
+    const systemPrompt = `You are a crop disease specialist. Identify the specific issue. Return ONLY valid JSON:
+{
+  "specificIssue": "exact disease/pest name",
+  "scientificName": "scientific name if applicable",
+  "commonNames": ["alternative names"],
+  "causativeAgent": "bacteria|fungus|virus|insect|mite|deficiency",
+  "transmissionMode": "airborne|soilborne|insect-vector|contact",
+  "riskFactors": ["conditions that worsen the problem"]
+}`;
+
+    const response = await this.callAPI(`ISSUE IDENTIFICATION:
+Crop: ${cropData.cropType}
+Problem Type: ${symptomAnalysis.problemType}
+Symptoms: ${symptomAnalysis.keySymptoms?.join(', ')}
+Location: ${cropData.location}
+Weather: ${cropData.weatherConditions}
+
+Identify the specific disease, pest, or deficiency.`, systemPrompt);
+    
+    return this.parseJSON(response) || {specificIssue: 'Unknown', causativeAgent: 'unknown'};
+  }
+
+  static async assessSeverity(cropData, identification) {
+    const systemPrompt = `You are a crop damage assessor. Evaluate severity and impact. Return ONLY valid JSON:
+{
+  "severityLevel": "Low|Medium|High|Critical",
+  "affectedPercentage": 25,
+  "spreadRate": "Slow|Moderate|Fast|Very Fast",
+  "yieldImpact": "5-15%|15-30%|30-60%|60%+",
+  "economicLoss": "₹2000-5000|₹5000-15000|₹15000-30000|₹30000+",
+  "timeToAction": "24 hours|3-7 days|1-2 weeks|Monitor"
+}`;
+
+    const response = await this.callAPI(`SEVERITY ASSESSMENT:
+Crop: ${cropData.cropType}
+Field Size: ${cropData.fieldSize} acres
+Issue: ${identification.specificIssue}
+Symptoms Pattern: ${cropData.symptoms}
+Current Treatments: ${cropData.fertilizer || 'none'}, ${cropData.pesticide || 'none'}
+
+Assess the severity and potential impact.`, systemPrompt);
+    
+    return this.parseJSON(response) || {severityLevel: 'Medium', affectedPercentage: 20};
+  }
+
+  static async selectTreatment(cropData, identification, severity) {
+    const systemPrompt = `You are a crop treatment specialist. Select optimal treatment. Return ONLY valid JSON:
+{
+  "primaryTreatment": "specific treatment method",
+  "activeIngredient": "chemical/biological agent",
+  "dosage": "application rate",
+  "applicationMethod": "spray|drench|granular|injection",
+  "frequency": "application schedule",
+  "alternativeTreatment": "organic/biological option",
+  "cost": "₹800-1500",
+  "effectiveness": "85-95%|70-85%|60-75%|<60%"
+}`;
+
+    const response = await this.callAPI(`TREATMENT SELECTION:
+Issue: ${identification.specificIssue}
+Causative Agent: ${identification.causativeAgent}
+Severity: ${severity.severityLevel}
+Field Size: ${cropData.fieldSize} acres
+Urgency: ${severity.timeToAction}
+
+Select the most effective treatment for this specific issue.`, systemPrompt);
+    
+    return this.parseJSON(response) || {primaryTreatment: 'General fungicide', cost: '₹1000'};
+  }
+
+  static async generateFinalRecommendations(cropData, analysisSteps) {
+    const systemPrompt = `You are a senior agricultural consultant. Provide final recommendations. Return ONLY valid JSON:
+{
+  "cropHealth": "Excellent|Good|Fair|Poor|Critical",
+  "healthScore": 75,
+  "primaryIssue": "${analysisSteps.identification.specificIssue}",
+  "confidence": 90,
+  "diseases": [{
+    "name": "${analysisSteps.identification.specificIssue}",
+    "type": "${analysisSteps.identification.causativeAgent}",
+    "severity": "${analysisSteps.severity.severityLevel}",
+    "symptoms": ${JSON.stringify(analysisSteps.symptoms.keySymptoms || [])},
+    "treatment": "${analysisSteps.treatment.primaryTreatment}",
+    "cost": "${analysisSteps.treatment.cost}",
+    "urgency": "${analysisSteps.symptoms.urgency}"
+  }],
+  "treatmentPlan": {
+    "chemical": "${analysisSteps.treatment.activeIngredient} @ ${analysisSteps.treatment.dosage}",
+    "organic": "${analysisSteps.treatment.alternativeTreatment}",
+    "frequency": "${analysisSteps.treatment.frequency}"
+  },
+  "recommendations": {
+    "immediate": ["Apply ${analysisSteps.treatment.primaryTreatment}", "Monitor spread", "Improve conditions"],
+    "weekly": ["Check treatment effectiveness", "Repeat if needed"],
+    "prevention": ["Use resistant varieties", "Improve field hygiene"]
+  },
+  "expectedOutcome": {
+    "recoveryTime": "1-3 weeks|3-6 weeks|6-12 weeks",
+    "successRate": "${analysisSteps.treatment.effectiveness}",
+    "yieldRecovery": "Full recovery|80-90%|60-80%|<60%"
+  }
+}`;
+
+    const response = await this.callAPI(`FINAL RECOMMENDATIONS:
+Crop: ${cropData.cropType}
+Analysis Summary:
+- Problem: ${analysisSteps.identification.specificIssue}
+- Severity: ${analysisSteps.severity.severityLevel}
+- Treatment: ${analysisSteps.treatment.primaryTreatment}
+- Confidence: ${analysisSteps.symptoms.confidence}%
+
+Provide comprehensive final recommendations.`, systemPrompt);
+    
+    return this.parseJSON(response) || this.getDefaultCropAnalysis();
+  }
+
+  static determineAnalysisType(symptoms) {
+    if (!symptoms) return 'general';
+    
+    const symptomText = symptoms.toLowerCase();
+    
+    if (symptomText.includes('bacterial') || symptomText.includes('blight') || 
+        symptomText.includes('canker') || symptomText.includes('soft rot') ||
+        symptomText.includes('water-soaked') || symptomText.includes('ooze')) {
+      return 'bacterial';
+    }
+    
+    if (symptomText.includes('fungal') || symptomText.includes('mold') || 
+        symptomText.includes('rust') || symptomText.includes('mildew') ||
+        symptomText.includes('spot') || symptomText.includes('wilt')) {
+      return 'fungal';
+    }
+    
+    if (symptomText.includes('pest') || symptomText.includes('insect') || 
+        symptomText.includes('caterpillar') || symptomText.includes('aphid') ||
+        symptomText.includes('holes') || symptomText.includes('chewed')) {
+      return 'pest';
+    }
+    
+    if (symptomText.includes('yellow') || symptomText.includes('chlorosis') || 
+        symptomText.includes('deficiency') || symptomText.includes('stunted') ||
+        symptomText.includes('purple') || symptomText.includes('pale')) {
+      return 'nutrient';
+    }
+    
+    return 'general';
+  }
+
+  static getSystemPromptForType(type) {
+    switch (type) {
+      case 'bacterial':
+        return `{
+  "cropHealth": "Poor|Critical",
+  "healthScore": 40,
+  "primaryIssue": "Bacterial Disease",
+  "diseases": [{
+    "name": "specific bacterial disease",
+    "type": "Bacterial",
+    "severity": "Medium|High|Critical",
+    "symptoms": ["observed symptoms"],
+    "treatment": "copper-based bactericide or antibiotic spray",
+    "cost": "₹800-1500",
+    "urgency": "Immediate"
+  }],
+  "recommendations": {
+    "immediate": ["Apply copper sulfate spray", "Remove infected plants", "Improve drainage"],
+    "weekly": ["Monitor spread", "Repeat treatment if needed"],
+    "prevention": ["Use disease-free seeds", "Crop rotation"]
+  },
+  "treatmentPlan": {
+    "chemical": "Copper oxychloride 50% WP @ 3g/L",
+    "organic": "Neem oil + copper sulfate",
+    "frequency": "Every 7-10 days until controlled"
+  }
+}`;
+      
+      case 'fungal':
+        return `{
+  "cropHealth": "Fair|Poor",
+  "healthScore": 50,
+  "primaryIssue": "Fungal Disease",
+  "diseases": [{
+    "name": "specific fungal disease",
+    "type": "Fungal",
+    "severity": "Low|Medium|High",
+    "symptoms": ["observed symptoms"],
+    "treatment": "systemic fungicide spray",
+    "cost": "₹600-1200",
+    "urgency": "Within week"
+  }],
+  "recommendations": {
+    "immediate": ["Apply fungicide", "Improve air circulation", "Reduce humidity"],
+    "weekly": ["Monitor disease progress", "Adjust irrigation"],
+    "prevention": ["Resistant varieties", "Proper spacing"]
+  },
+  "treatmentPlan": {
+    "chemical": "Propiconazole 25% EC @ 1ml/L",
+    "organic": "Trichoderma + neem oil",
+    "frequency": "Every 10-14 days"
+  }
+}`;
+      
+      case 'pest':
+        return `{
+  "cropHealth": "Good|Fair",
+  "healthScore": 65,
+  "primaryIssue": "Pest Infestation",
+  "pests": [{
+    "name": "specific pest",
+    "type": "Insect|Mite|Nematode",
+    "damage": "damage description",
+    "severity": "Low|Medium|High",
+    "control": "targeted pesticide or biological control",
+    "cost": "₹400-800"
+  }],
+  "recommendations": {
+    "immediate": ["Apply targeted pesticide", "Remove affected parts", "Install traps"],
+    "weekly": ["Monitor pest population", "Check trap catches"],
+    "prevention": ["Beneficial insects", "Crop rotation"]
+  },
+  "treatmentPlan": {
+    "chemical": "Specific insecticide based on pest",
+    "biological": "Predatory insects or parasites",
+    "frequency": "As needed based on threshold"
+  }
+}`;
+      
+      case 'nutrient':
+        return `{
+  "cropHealth": "Fair|Good",
+  "healthScore": 60,
+  "primaryIssue": "Nutrient Deficiency",
+  "nutritionDeficiency": [{
+    "nutrient": "N|P|K|Mg|Fe|Zn",
+    "symptoms": ["deficiency symptoms"],
+    "solution": "specific fertilizer recommendation",
+    "dosage": "application rate per acre"
+  }],
+  "fertilizers": [{
+    "name": "specific fertilizer",
+    "quantity": "kg per acre",
+    "timing": "application timing",
+    "cost": "₹1000-2000",
+    "purpose": "nutrient correction"
+  }],
+  "recommendations": {
+    "immediate": ["Apply deficient nutrient", "Soil test", "Foliar spray"],
+    "weekly": ["Monitor plant response", "Adjust fertilization"],
+    "longterm": ["Soil amendment", "Organic matter addition"]
+  }
+}`;
+      
+      default:
+        return `{
+  "cropHealth": "Good|Fair|Poor",
+  "healthScore": 75,
+  "growthStage": "current stage analysis",
+  "yieldPrediction": {"expected": "yield estimate", "quality": "High|Medium|Low"},
+  "diseases": [],
+  "pests": [],
+  "nutritionDeficiency": [],
+  "recommendations": {
+    "immediate": ["general care actions"],
+    "weekly": ["monitoring tasks"],
+    "monthly": ["long-term care"]
+  },
+  "overallAssessment": "comprehensive health status"
+}`;
     }
   }
 
@@ -366,21 +621,24 @@ Analyze sensor data scientifically and provide precise irrigation scheduling, cl
     return {
       cropHealth: 'Good',
       healthScore: 78,
-      growthStage: 'Vegetative stage - healthy development',
-      yieldPrediction: {expected: '25-30 quintals per acre', factors: ['Weather conditions', 'Nutrient management'], quality: 'High'},
-      diseases: [{name: 'Leaf spot (minor)', severity: 'Low', symptoms: ['Small brown spots'], treatment: 'Copper fungicide spray', cost: '₹800-1200', urgency: 'Within week'}],
-      pests: [{name: 'Aphids', damage: 'Minimal leaf damage', severity: 'Low', control: 'Neem oil spray', cost: '₹400-600'}],
-      nutritionDeficiency: [{nutrient: 'Nitrogen', symptoms: ['Yellowing lower leaves'], solution: 'Urea application', dosage: '25kg per acre'}],
-      fertilizers: [{name: 'NPK 19:19:19', quantity: '50kg per acre', timing: 'Every 20 days', cost: '₹1500-2000', purpose: 'growth'}],
-      irrigation: {schedule: 'Every 3 days', method: 'Drip irrigation', waterNeeded: '150L per day', efficiency: '75% current vs 90% optimal'},
-      harvest: {optimalTime: '45-50 days from now', indicators: ['Golden color', '85% grain filling'], expectedYield: '28 quintals per acre', marketTiming: 'Post-harvest season for better prices'},
-      recommendations: {
-        immediate: ['Apply nitrogen fertilizer', 'Check for pest damage'],
-        weekly: ['Monitor irrigation schedule', 'Spray preventive fungicide'],
-        monthly: ['Soil health assessment', 'Market price monitoring']
+      primaryIssue: 'General Health Check',
+      confidence: 75,
+      diseases: [],
+      treatmentPlan: {
+        chemical: 'Preventive spray as needed',
+        organic: 'Neem oil application',
+        frequency: 'Monthly monitoring'
       },
-      riskFactors: ['Monsoon delay risk', 'Pest outbreak possibility', 'Price volatility'],
-      costAnalysis: {totalCare: '₹6000-8000', expectedRevenue: '₹28000-35000', profitMargin: '65-75%'}
+      recommendations: {
+        immediate: ['Monitor plant health', 'Check irrigation system'],
+        weekly: ['Regular field inspection', 'Weather monitoring'],
+        prevention: ['Maintain field hygiene', 'Use quality seeds']
+      },
+      expectedOutcome: {
+        recoveryTime: '1-2 weeks',
+        successRate: '90-95%',
+        yieldRecovery: 'Full recovery'
+      }
     };
   }
 
