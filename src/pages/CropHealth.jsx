@@ -778,71 +778,44 @@ const CropHealth = () => {
             {isAnalyzing && (
               <div className="text-center py-16">
                 <div className="mb-8">
-                  <div className="flex justify-center items-center space-x-3 mb-8">
+                  <div className="flex justify-center items-center space-x-4 mb-6">
                     {[1, 2, 3, 4, 5].map((step) => (
                       <div key={step} className="flex items-center">
-                        <div className={`relative w-14 h-14 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-700 border-2 shadow-lg ${
-                          step < currentStep ? 'bg-gradient-to-br from-green-400 to-green-600 text-white border-green-400 shadow-green-500/30' :
-                          step === currentStep ? 'bg-gradient-to-br from-green-300 to-green-500 text-black border-green-300 animate-pulse scale-110 shadow-green-400/50' :
-                          'bg-gray-800/80 text-gray-400 border-gray-600/50 shadow-gray-800/20'
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-lg ${
+                          currentStep > step ? 'bg-green-500 text-white shadow-green-500/30' :
+                          currentStep === step ? 'bg-green-400 text-white animate-pulse shadow-green-400/40' :
+                          'bg-gray-700 text-gray-400 shadow-gray-700/20'
                         }`}>
-                          {step < currentStep ? (
-                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          ) : step}
-                          {step === currentStep && (
-                            <div className="absolute -inset-1 rounded-full bg-green-400/20 animate-ping" />
-                          )}
+                          {currentStep > step ? '✓' : step}
                         </div>
                         {step < 5 && (
-                          <div className={`w-16 h-1 mx-2 rounded-full transition-all duration-700 ${
-                            step < currentStep ? 'bg-gradient-to-r from-green-400 to-green-500 shadow-sm' : 'bg-gray-700/50'
-                          }`} />
+                          <div className={`w-16 h-1 mx-3 rounded-full transition-all duration-500 ${
+                            currentStep > step ? 'bg-green-500' : 'bg-gray-700'
+                          }`}></div>
                         )}
                       </div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-5 gap-2 max-w-3xl mx-auto mb-8">
-                    {[
-                      { label: 'Symptom Analysis', desc: 'Classifying symptoms' },
-                      { label: 'Issue Identification', desc: 'Detecting problems' },
-                      { label: 'Severity Assessment', desc: 'Evaluating impact' },
-                      { label: 'Treatment Selection', desc: 'Choosing solutions' },
-                      { label: 'Final Report', desc: 'Generating results' }
-                    ].map((item, index) => (
-                      <div key={index} className={`text-center p-3 rounded-xl transition-all duration-500 ${
-                        currentStep === index + 1 
-                          ? 'bg-green-500/10 border border-green-500/30 text-green-400 transform scale-105' 
-                          : currentStep > index + 1
-                          ? 'text-green-300/70'
-                          : 'text-gray-500'
-                      }`}>
-                        <div className="text-xs font-semibold mb-1">{item.label}</div>
-                        <div className="text-xs opacity-75">{item.desc}</div>
-                      </div>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="text-sm text-gray-400 uppercase tracking-wider font-medium">Step {currentStep} of 5</div>
+                    <div className="text-xl font-semibold text-green-400 min-h-[28px]">{stepMessage}</div>
+                    <div className="text-sm text-gray-500">
+                      {currentStep === 1 && 'Analyzing symptoms and classifying problem type...'}
+                      {currentStep === 2 && 'Identifying specific disease, pest, or deficiency...'}
+                      {currentStep === 3 && 'Assessing severity and potential impact...'}
+                      {currentStep === 4 && 'Selecting optimal treatment strategy...'}
+                      {currentStep === 5 && 'Generating final recommendations and outcomes...'}
+                    </div>
                   </div>
                 </div>
                 <div className="relative">
-                  <Loader className="w-20 h-20 text-green-500 animate-spin mx-auto mb-6" />
+                  <div className="w-20 h-20 border-4 border-green-500/20 border-t-green-500 rounded-full animate-spin mx-auto mb-4"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 bg-green-500/20 rounded-full animate-pulse" />
+                    <BarChart3 className="w-8 h-8 text-green-400" />
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <p className="text-green-400 font-bold text-lg">
-                    {currentStep > 0 ? `Step ${currentStep} of 5` : 'Initializing Analysis'}
-                  </p>
-                  <p className="text-white font-medium">{stepMessage || 'Preparing AI systems...'}</p>
-                  <div className="w-64 h-2 bg-gray-800 rounded-full mx-auto overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${(currentStep / 5) * 100}%` }}
-                    />
-                  </div>
-                  <p className="text-gray-400 text-sm">{Math.round((currentStep / 5) * 100)}% Complete</p>
-                </div>
+                <p className="text-green-400 font-semibold text-lg">AI Crop Analysis in Progress</p>
+                <p className="text-gray-400 text-sm mt-2">5-step systematic analysis for 90%+ accuracy</p>
               </div>
             )}
             {cropAnalysis && !isAnalyzing && (
@@ -1193,11 +1166,13 @@ const CropHealth = () => {
               </div>
             )}
             {!cropAnalysis && !isAnalyzing && (
-              <div className="text-center py-16 text-green-600">
-                <Camera className="w-16 h-16 mx-auto mb-4 opacity-70" />
-                <p className="font-medium text-gray-300">5-Step AI Analysis for 90%+ Accuracy</p>
-                <p className="text-sm text-gray-400 mt-2">Symptom Classification → Issue Identification → Severity Assessment → Treatment Selection → Final Recommendations</p>
-                <p className="text-xs text-gray-500 mt-1">Describe specific symptoms for precise diagnosis</p>
+              <div className="text-center py-16">
+                <div className="bg-green-500/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <BarChart3 className="w-10 h-10 text-green-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">Ready for AI Diagnosis</h3>
+                <p className="text-gray-400 mb-2">Enter crop data and symptoms, then click "Analyze Data" for precise diagnosis</p>
+                <p className="text-sm text-gray-500">5-Step Analysis: Symptom Classification → Issue Identification → Severity Assessment → Treatment Selection → Final Recommendations</p>
               </div>
             )}
           </div>

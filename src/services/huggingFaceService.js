@@ -335,110 +335,243 @@ Provide comprehensive final recommendations.`, systemPrompt);
     }
   }
 
-  static async analyzeSoil(soilSample) {
+  static async analyzeSoil(soilSample, onStepUpdate = null) {
     try {
-      // Sanitize input data to prevent XSS
       const sanitizedSample = this.sanitizeInputData(soilSample);
-      console.log('FarmerAI: Starting soil analysis for:', sanitizedSample);
       
-      const systemPrompt = `You are an expert agricultural soil scientist with 20+ years of experience. Analyze soil data scientifically.
-
-SOIL ANALYSIS RULES:
-- pH 0-5.5: Acidic (add lime, grow tea, potatoes)
-- pH 5.5-6.5: Slightly acidic (ideal for most crops)
-- pH 6.5-7.5: Neutral (excellent for vegetables, grains)
-- pH 7.5-8.5: Alkaline (add sulfur, grow barley)
-- pH >8.5: Highly alkaline (major amendments needed)
-
-NUTRIENT LEVELS (ppm):
-- Nitrogen: <20=Low, 20-40=Medium, >40=High
-- Phosphorus: <15=Low, 15-30=Medium, >30=High
-- Potassium: <100=Low, 100-200=Medium, >200=High
-
-Return ONLY valid JSON:
-{
-  "soilType": "soil classification",
-  "pH": "pH level and recommendations",
-  "healthScore": 85,
-  "nutrients": {"nitrogen": "High|Medium|Low", "phosphorus": "High|Medium|Low", "potassium": "High|Medium|Low"},
-  "organicMatter": "organic content percentage",
-  "improvements": ["soil improvement methods"],
-  "fertilizers": ["recommended fertilizers"],
-  "suitableCrops": [
-    {
-      "name": "crop name 1",
-      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
-      "season": "Kharif|Rabi|Zaid",
-      "duration": "3-6 months",
-      "investment": "15-25k per acre",
-      "roi": "120-180%",
-      "marketDemand": "High|Medium|Low",
-      "riskLevel": "Low|Medium|High"
-    },
-    {
-      "name": "crop name 2",
-      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
-      "season": "Kharif|Rabi|Zaid",
-      "duration": "3-6 months",
-      "investment": "15-25k per acre",
-      "roi": "120-180%",
-      "marketDemand": "High|Medium|Low",
-      "riskLevel": "Low|Medium|High"
-    },
-    {
-      "name": "crop name 3",
-      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
-      "season": "Kharif|Rabi|Zaid",
-      "duration": "3-6 months",
-      "investment": "15-25k per acre",
-      "roi": "120-180%",
-      "marketDemand": "High|Medium|Low",
-      "riskLevel": "Low|Medium|High"
-    },
-    {
-      "name": "crop name 4",
-      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
-      "season": "Kharif|Rabi|Zaid",
-      "duration": "3-6 months",
-      "investment": "15-25k per acre",
-      "roi": "120-180%",
-      "marketDemand": "High|Medium|Low",
-      "riskLevel": "Low|Medium|High"
-    },
-    {
-      "name": "crop name 5",
-      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
-      "season": "Kharif|Rabi|Zaid",
-      "duration": "3-6 months",
-      "investment": "15-25k per acre",
-      "roi": "120-180%",
-      "marketDemand": "High|Medium|Low",
-      "riskLevel": "Low|Medium|High"
-    }
-  ]
-}`;
-
-      const response = await this.callAPI(`SOIL ANALYSIS:
-PH: ${sanitizedSample.ph}
-Nitrogen: ${sanitizedSample.nitrogen} ppm
-Phosphorus: ${sanitizedSample.phosphorus} ppm
-Potassium: ${sanitizedSample.potassium} ppm
-Moisture: ${sanitizedSample.moisture}%
-Organic Matter: ${sanitizedSample.organicMatter}%
-Temperature: ${sanitizedSample.temperature}°C
-Salinity: ${sanitizedSample.salinity} dS/m
-
-Provide scientific analysis with exactly 5 crops suitable for these conditions.`, systemPrompt);
-      console.log('FarmerAI: Raw API response:', response);
+      // Step 1: Soil Composition Analysis
+      onStepUpdate?.(1, 'Analyzing soil composition and physical properties...');
+      const compositionAnalysis = await this.analyzeSoilComposition(sanitizedSample);
       
-      const parsed = this.parseJSON(response);
-      console.log('FarmerAI: Parsed result:', parsed);
+      // Step 2: Chemical Properties Assessment
+      onStepUpdate?.(2, 'Evaluating pH, nutrients, and chemical balance...');
+      const chemicalAnalysis = await this.assessChemicalProperties(sanitizedSample, compositionAnalysis);
       
-      return parsed || this.getDefaultSoilAnalysis();
+      // Step 3: Fertility and Health Evaluation
+      onStepUpdate?.(3, 'Determining soil fertility and health status...');
+      const fertilityAssessment = await this.evaluateSoilFertility(sanitizedSample, chemicalAnalysis);
+      
+      // Step 4: Crop Suitability Analysis
+      onStepUpdate?.(4, 'Identifying suitable crops and profitability...');
+      const cropSuitability = await this.analyzeCropSuitability(sanitizedSample, fertilityAssessment);
+      
+      // Step 5: Final Recommendations
+      onStepUpdate?.(5, 'Generating comprehensive soil management plan...');
+      const finalAnalysis = await this.generateSoilRecommendations(sanitizedSample, {
+        composition: compositionAnalysis,
+        chemical: chemicalAnalysis,
+        fertility: fertilityAssessment,
+        crops: cropSuitability
+      });
+      
+      return finalAnalysis || this.getDefaultSoilAnalysis();
     } catch (error) {
       console.error('FarmerAI: Soil analysis error:', error);
       return this.getDefaultSoilAnalysis();
     }
+  }
+
+  static async analyzeSoilComposition(soilData) {
+    const systemPrompt = `You are a soil physicist. Analyze soil composition and structure. Return ONLY valid JSON:
+{
+  "soilTexture": "Clay|Loam|Sandy|Silt",
+  "structure": "Granular|Blocky|Platy|Massive",
+  "porosity": "High|Medium|Low",
+  "drainage": "Excellent|Good|Poor|Very Poor",
+  "compaction": "None|Light|Moderate|Severe",
+  "organicMatter": "High|Medium|Low",
+  "waterHoldingCapacity": "High|Medium|Low"
+}`;
+
+    const response = await this.callAPI(`SOIL COMPOSITION ANALYSIS:
+Moisture: ${soilData.moisture}%
+Organic Matter: ${soilData.organicMatter}%
+Temperature: ${soilData.temperature}°C
+Salinity: ${soilData.salinity} dS/m
+
+Analyze soil physical properties and structure.`, systemPrompt);
+    
+    return this.parseJSON(response) || {soilTexture: 'Loam', drainage: 'Good', organicMatter: 'Medium'};
+  }
+
+  static async assessChemicalProperties(soilData, composition) {
+    const systemPrompt = `You are a soil chemist. Assess chemical properties and nutrient status. Return ONLY valid JSON:
+{
+  "pHCategory": "Highly Acidic|Acidic|Slightly Acidic|Neutral|Slightly Alkaline|Alkaline|Highly Alkaline",
+  "pHImpact": "nutrient availability impact",
+  "nutrientStatus": {
+    "nitrogen": {"level": "High|Medium|Low", "availability": "Good|Fair|Poor"},
+    "phosphorus": {"level": "High|Medium|Low", "availability": "Good|Fair|Poor"},
+    "potassium": {"level": "High|Medium|Low", "availability": "Good|Fair|Poor"}
+  },
+  "salinityImpact": "None|Slight|Moderate|Severe",
+  "cationExchangeCapacity": "High|Medium|Low",
+  "micronutrients": "Adequate|Deficient|Toxic"
+}`;
+
+    const response = await this.callAPI(`CHEMICAL PROPERTIES ASSESSMENT:
+PH: ${soilData.ph}
+Nitrogen: ${soilData.nitrogen} ppm
+Phosphorus: ${soilData.phosphorus} ppm
+Potassium: ${soilData.potassium} ppm
+Salinity: ${soilData.salinity} dS/m
+Soil Type: ${composition.soilTexture}
+
+Evaluate chemical balance and nutrient availability.`, systemPrompt);
+    
+    return this.parseJSON(response) || {pHCategory: 'Neutral', nutrientStatus: {nitrogen: {level: 'Medium'}, phosphorus: {level: 'Medium'}, potassium: {level: 'Medium'}}};
+  }
+
+  static async evaluateSoilFertility(soilData, chemical) {
+    const systemPrompt = `You are a soil fertility expert. Evaluate overall fertility and health. Return ONLY valid JSON:
+{
+  "fertilityRating": "Excellent|Good|Fair|Poor|Very Poor",
+  "healthScore": 85,
+  "limitingFactors": ["factors limiting productivity"],
+  "strengths": ["soil advantages"],
+  "biologicalActivity": "High|Medium|Low",
+  "sustainabilityIndex": "High|Medium|Low",
+  "improvementPotential": "High|Medium|Low"
+}`;
+
+    const response = await this.callAPI(`FERTILITY EVALUATION:
+PH Category: ${chemical.pHCategory}
+Nutrient Status: N-${chemical.nutrientStatus?.nitrogen?.level}, P-${chemical.nutrientStatus?.phosphorus?.level}, K-${chemical.nutrientStatus?.potassium?.level}
+Organic Matter: ${soilData.organicMatter}%
+Salinity Impact: ${chemical.salinityImpact}
+
+Evaluate overall soil fertility and health status.`, systemPrompt);
+    
+    return this.parseJSON(response) || {fertilityRating: 'Good', healthScore: 75, limitingFactors: ['pH adjustment needed']};
+  }
+
+  static async analyzeCropSuitability(soilData, fertility) {
+    const systemPrompt = `You are a crop-soil compatibility expert. Identify suitable crops. Return ONLY valid JSON:
+{
+  "suitableCrops": [
+    {
+      "name": "crop name",
+      "suitabilityScore": 90,
+      "profitLevel": "High Profit|Medium Profit|Good Profit|Stable Profit",
+      "season": "Kharif|Rabi|Zaid",
+      "duration": "3-6 months",
+      "investment": "₹15-25k/acre",
+      "roi": "120-180%",
+      "marketDemand": "High|Medium|Low",
+      "riskLevel": "Low|Medium|High",
+      "waterRequirement": "High|Medium|Low",
+      "soilMatch": "why this crop suits the soil"
+    }
+  ],
+  "avoidCrops": ["crops to avoid with reasons"]
+}`;
+
+    const response = await this.callAPI(`CROP SUITABILITY ANALYSIS:
+Fertility Rating: ${fertility.fertilityRating}
+Health Score: ${fertility.healthScore}
+PH: ${soilData.ph}
+Nutrients: N-${soilData.nitrogen}ppm, P-${soilData.phosphorus}ppm, K-${soilData.potassium}ppm
+Moisture: ${soilData.moisture}%
+
+Identify 5 most suitable and profitable crops for these soil conditions.`, systemPrompt);
+    
+    return this.parseJSON(response) || {suitableCrops: [{name: 'Wheat', suitabilityScore: 85, profitLevel: 'High Profit'}]};
+  }
+
+  static generateFinalReport(soilData, analysis) {
+    const { direct, classification, problems, treatments } = analysis;
+    const { values, pHCategory, nLevel, pLevel, kLevel, salinityLevel, omLevel } = classification;
+    
+    // Calculate health score scientifically
+    let healthScore = 100;
+    if (values.ph < 5.5 || values.ph > 8.5) healthScore -= 30;
+    else if (values.ph < 6.0 || values.ph > 8.0) healthScore -= 15;
+    if (values.salinity > 4) healthScore -= 25;
+    if (values.salinity > 8) healthScore -= 15;
+    if (values.nitrogen < 50) healthScore -= 15;
+    if (values.organicMatter > 30) healthScore -= 10;
+    healthScore = Math.max(20, healthScore);
+    
+    // Select crops based on actual conditions
+    const suitableCrops = this.selectSuitableCrops(values, classification);
+    
+    return {
+      soilType: `${omLevel} organic matter soil with ${pHCategory.toLowerCase()} reaction`,
+      pH: `${pHCategory} (${values.ph}) - ${this.getpHAdvice(values.ph)}`,
+      healthScore,
+      nutrients: {
+        nitrogen: `${nLevel} (${values.nitrogen} ppm)`,
+        phosphorus: `${pLevel} (${values.phosphorus} ppm)`,
+        potassium: `${kLevel} (${values.potassium} ppm)`
+      },
+      organicMatter: `${omLevel} (${values.organicMatter}%)`,
+      salinity: `${salinityLevel} (${values.salinity} dS/m)`,
+      improvements: problems.map(p => p.solution),
+      fertilizers: treatments.treatments,
+      suitableCrops,
+      managementPlan: {
+        immediate: problems.filter(p => p.severity === 'High').map(p => p.solution),
+        shortTerm: ['Monitor treatment effectiveness', 'Plant suitable crops', 'Adjust irrigation'],
+        longTerm: ['Maintain optimal conditions', 'Regular soil testing', 'Sustainable practices']
+      },
+      monitoring: {
+        soilTesting: values.salinity > 4 ? 'Monthly for salinity' : 'Every 6 months',
+        organicMatter: 'Annual assessment',
+        compaction: 'Seasonal check',
+        salinity: values.salinity > 4 ? 'Weekly until <4 dS/m' : 'As needed'
+      },
+      riskFactors: problems.map(p => p.impact),
+      successIndicators: this.getSuccessIndicators(values, problems),
+      treatmentCost: treatments.totalCost
+    };
+  }
+  
+  static selectSuitableCrops(values, classification) {
+    // Priority: Salinity > pH > Nutrients
+    if (values.salinity > 4) {
+      return [
+        {name: 'Barley', suitabilityScore: 85, profitLevel: 'Medium Profit', season: 'Rabi', duration: '4-5 months', investment: '₹15-20k/acre', roi: '120-150%', marketDemand: 'Medium', riskLevel: 'Low', waterRequirement: 'Low', soilMatch: `Salt-tolerant (EC ${values.salinity} dS/m)`},
+        {name: 'Sugar Beet', suitabilityScore: 80, profitLevel: 'High Profit', season: 'Rabi', duration: '5-6 months', investment: '₹25-35k/acre', roi: '150-200%', marketDemand: 'High', riskLevel: 'Medium', waterRequirement: 'Medium', soilMatch: 'Excellent salinity tolerance'},
+        {name: 'Quinoa', suitabilityScore: 90, profitLevel: 'High Profit', season: 'Rabi', duration: '3-4 months', investment: '₹20-30k/acre', roi: '180-250%', marketDemand: 'Very High', riskLevel: 'Medium', waterRequirement: 'Low', soilMatch: 'Superior salt tolerance + premium market'},
+        {name: 'Date Palm', suitabilityScore: 88, profitLevel: 'High Profit', season: 'Year-round', duration: 'Perennial', investment: '₹80-120k/acre', roi: '200-300%', marketDemand: 'High', riskLevel: 'Low', waterRequirement: 'Medium', soilMatch: 'Highly salt-tolerant tree crop'},
+        {name: 'Spinach', suitabilityScore: 75, profitLevel: 'Medium Profit', season: 'Rabi', duration: '2-3 months', investment: '₹10-15k/acre', roi: '130-160%', marketDemand: 'Medium', riskLevel: 'Low', waterRequirement: 'Medium', soilMatch: 'Moderate salt tolerance'}
+      ];
+    }
+    
+    if (values.ph < 6.0) {
+      return [
+        {name: 'Potatoes', suitabilityScore: 90, profitLevel: 'Good Profit', season: 'Rabi', duration: '3-4 months', investment: '₹25-35k/acre', roi: '150-200%', marketDemand: 'High', riskLevel: 'Low', waterRequirement: 'Medium', soilMatch: `Perfect for pH ${values.ph} acidic soil`},
+        {name: 'Blueberries', suitabilityScore: 95, profitLevel: 'High Profit', season: 'Year-round', duration: 'Perennial', investment: '₹80-120k/acre', roi: '250-400%', marketDemand: 'Very High', riskLevel: 'Medium', waterRequirement: 'Medium', soilMatch: 'Requires acidic soil pH 4.5-5.5'},
+        {name: 'Tea', suitabilityScore: 92, profitLevel: 'High Profit', season: 'Year-round', duration: 'Perennial', investment: '₹40-60k/acre', roi: '200-300%', marketDemand: 'High', riskLevel: 'Low', waterRequirement: 'High', soilMatch: 'Thrives in acidic conditions'},
+        {name: 'Sweet Potatoes', suitabilityScore: 85, profitLevel: 'Medium Profit', season: 'Kharif', duration: '4-5 months', investment: '₹20-30k/acre', roi: '140-180%', marketDemand: 'Medium', riskLevel: 'Low', waterRequirement: 'Low', soilMatch: 'Tolerates acidic soil well'},
+        {name: 'Radish', suitabilityScore: 80, profitLevel: 'Medium Profit', season: 'Rabi', duration: '2-3 months', investment: '₹8-12k/acre', roi: '120-150%', marketDemand: 'Medium', riskLevel: 'Low', waterRequirement: 'Medium', soilMatch: 'Adapts to acidic conditions'}
+      ];
+    }
+    
+    return [
+      {name: 'Wheat', suitabilityScore: 88, profitLevel: 'High Profit', season: 'Rabi', duration: '4-5 months', investment: '₹20-25k/acre', roi: '150-180%', marketDemand: 'High', riskLevel: 'Low', waterRequirement: 'Medium', soilMatch: 'Good for neutral pH soil'},
+      {name: 'Rice', suitabilityScore: 85, profitLevel: 'Medium Profit', season: 'Kharif', duration: '3-4 months', investment: '₹18-22k/acre', roi: '120-150%', marketDemand: 'High', riskLevel: 'Medium', waterRequirement: 'High', soilMatch: 'Versatile crop'},
+      {name: 'Maize', suitabilityScore: 87, profitLevel: 'Stable Profit', season: 'Kharif', duration: '3-4 months', investment: '₹15-20k/acre', roi: '110-140%', marketDemand: 'Medium', riskLevel: 'Low', waterRequirement: 'Medium', soilMatch: 'Adapts to various conditions'}
+    ];
+  }
+  
+  static getpHAdvice(ph) {
+    if (ph < 5.5) return 'Apply lime 300-500 kg/acre immediately';
+    if (ph < 6.0) return 'Apply lime 200-300 kg/acre';
+    if (ph > 8.5) return 'Apply sulfur 100-200 kg/acre';
+    if (ph > 8.0) return 'Monitor for alkalinity issues';
+    return 'pH is in acceptable range';
+  }
+  
+  static getSuccessIndicators(values, problems) {
+    const indicators = ['Improved crop germination and growth', 'Better nutrient uptake efficiency'];
+    
+    if (values.ph < 6.0) indicators.push('pH rises to 6.0-6.5 range');
+    if (values.salinity > 4) indicators.push('Salinity reduces below 4 dS/m');
+    if (values.nitrogen < 50) indicators.push('Healthier green foliage');
+    
+    indicators.push('Increased crop yields and quality');
+    return indicators;
   }
 
   static async optimizeIrrigation(farmData) {
@@ -644,20 +777,31 @@ Analyze sensor data scientifically and provide precise irrigation scheduling, cl
 
   static getDefaultSoilAnalysis() {
     return {
-      soilType: 'Loamy soil - well-balanced for most crops',
-      pH: '6.8 - Slightly acidic, good for most crops',
-      healthScore: 82,
-      nutrients: {nitrogen: 'Medium', phosphorus: 'High', potassium: 'Medium'},
-      organicMatter: '3.2% - Good organic content',
-      improvements: ['Add compost', 'Crop rotation', 'Cover cropping'],
-      fertilizers: ['NPK 19:19:19', 'Organic compost', 'Micronutrient mix'],
+      soilType: 'Standard soil requiring assessment',
+      pH: 'Neutral (7.0) - Good for most crops',
+      healthScore: 75,
+      nutrients: {nitrogen: 'Medium', phosphorus: 'Medium', potassium: 'Medium'},
+      organicMatter: 'Medium (3%)',
+      improvements: ['Regular soil testing', 'Balanced fertilization', 'Organic matter maintenance'],
+      fertilizers: ['Balanced NPK as needed', 'Organic compost 2-5 tons/acre', 'Micronutrients if deficient'],
       suitableCrops: [
-        {name: 'Wheat', profitLevel: 'High Profit', season: 'Rabi', duration: '4-5 months', investment: '20-25k per acre', roi: '150-180%', marketDemand: 'High', riskLevel: 'Low'},
-        {name: 'Rice', profitLevel: 'Medium Profit', season: 'Kharif', duration: '3-4 months', investment: '18-22k per acre', roi: '120-150%', marketDemand: 'High', riskLevel: 'Medium'},
-        {name: 'Sugarcane', profitLevel: 'High Profit', season: 'Kharif', duration: '12-18 months', investment: '35-45k per acre', roi: '180-220%', marketDemand: 'High', riskLevel: 'Medium'},
-        {name: 'Cotton', profitLevel: 'Good Profit', season: 'Kharif', duration: '5-6 months', investment: '25-30k per acre', roi: '140-170%', marketDemand: 'Medium', riskLevel: 'Medium'},
-        {name: 'Maize', profitLevel: 'Stable Profit', season: 'Kharif', duration: '3-4 months', investment: '15-20k per acre', roi: '110-140%', marketDemand: 'Medium', riskLevel: 'Low'}
-      ]
+        {name: 'Wheat', suitabilityScore: 85, profitLevel: 'High Profit', season: 'Rabi', duration: '4-5 months', investment: '₹20-25k/acre', roi: '150-180%', marketDemand: 'High', riskLevel: 'Low', waterRequirement: 'Medium', soilMatch: 'Suitable for neutral soil'},
+        {name: 'Rice', suitabilityScore: 80, profitLevel: 'Medium Profit', season: 'Kharif', duration: '3-4 months', investment: '₹18-22k/acre', roi: '120-150%', marketDemand: 'High', riskLevel: 'Medium', waterRequirement: 'High', soilMatch: 'Adapts to various soil types'},
+        {name: 'Maize', suitabilityScore: 82, profitLevel: 'Stable Profit', season: 'Kharif', duration: '3-4 months', investment: '₹15-20k/acre', roi: '110-140%', marketDemand: 'Medium', riskLevel: 'Low', waterRequirement: 'Medium', soilMatch: 'Versatile crop for most soils'}
+      ],
+      managementPlan: {
+        immediate: ['Soil testing for accurate assessment'],
+        shortTerm: ['Balanced fertilization', 'Crop selection'],
+        longTerm: ['Soil health monitoring', 'Sustainable practices']
+      },
+      monitoring: {
+        soilTesting: 'Every 6 months',
+        organicMatter: 'Annual assessment',
+        compaction: 'Seasonal check',
+        salinity: 'Monitor if needed'
+      },
+      riskFactors: ['Weather-related stress', 'Nutrient imbalances'],
+      successIndicators: ['Healthy crop growth', 'Good yields', 'Soil health maintenance']
     };
   }
 
