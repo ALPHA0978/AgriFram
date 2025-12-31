@@ -1,6 +1,7 @@
 # AgriFarmAI - AI-Powered Smart Farming Platform
-
 A comprehensive AI-driven platform designed to revolutionize agriculture by providing farmers with intelligent insights for soil health, crop monitoring, irrigation optimization, and market analysis. This project directly contributes to **SDG 2 - Zero Hunger** by increasing agricultural productivity and empowering farmers with technology-driven solutions.
+
+##### Theme - AI / ML
 
 ## 🌟 Project Overview
 
