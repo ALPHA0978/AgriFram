@@ -9,6 +9,15 @@ export class FarmerAI extends BaseAI {
     try {
       const sanitizedData = this.sanitizeInputData(cropData);
       
+      // Check if there are actual symptoms or issues to analyze
+      const hasSymptoms = sanitizedData.symptoms && sanitizedData.symptoms.trim().length > 0;
+      const hasIssues = hasSymptoms || (sanitizedData.fertilizer && sanitizedData.pesticide);
+      
+      if (!hasSymptoms) {
+        // Return general health assessment without specific treatments
+        return this.getGeneralHealthAssessment(sanitizedData);
+      }
+      
       // Step 1: Symptom Classification
       onStepUpdate?.(1, 'Analyzing symptoms and classifying problem type...');
       const symptomAnalysis = await this.analyzeSymptoms(sanitizedData);
@@ -110,7 +119,7 @@ Assess the severity and potential impact.`, systemPrompt);
   }
 
   static async selectTreatment(cropData, identification, severity) {
-    const systemPrompt = `You are a crop treatment specialist. Select optimal treatment. Return ONLY valid JSON:
+    const systemPrompt = `You are a crop treatment specialist. Select optimal treatment with specific fertilizer/manure recommendations. Return ONLY valid JSON:
 {
   "primaryTreatment": "specific treatment method",
   "activeIngredient": "chemical/biological agent",
@@ -118,6 +127,25 @@ Assess the severity and potential impact.`, systemPrompt);
   "applicationMethod": "spray|drench|granular|injection",
   "frequency": "application schedule",
   "alternativeTreatment": "organic/biological option",
+  "fertilizers": [
+    {
+      "type": "Organic|Chemical|Bio-fertilizer",
+      "name": "specific fertilizer/manure name",
+      "quantity": "kg/acre or tons/acre",
+      "purpose": "nutrient correction|growth boost|disease resistance",
+      "timing": "application timing",
+      "cost": "₹X-Y per acre"
+    }
+  ],
+  "manures": [
+    {
+      "type": "Cow Dung|Poultry|Vermicompost|Green Manure",
+      "quantity": "tons per acre",
+      "preparation": "how to prepare/apply",
+      "benefits": "specific benefits for this issue",
+      "cost": "₹X-Y per acre"
+    }
+  ],
   "cost": "₹800-1500",
   "effectiveness": "85-95%|70-85%|60-75%|<60%"
 }`;
@@ -128,14 +156,20 @@ Causative Agent: ${identification.causativeAgent}
 Severity: ${severity.severityLevel}
 Field Size: ${cropData.fieldSize} acres
 Urgency: ${severity.timeToAction}
+Crop Type: ${cropData.cropType}
 
-Select the most effective treatment for this specific issue.`, systemPrompt);
+Select the most effective treatment with specific fertilizer and manure recommendations for this issue.`, systemPrompt);
     
-    return this.parseJSON(response) || {primaryTreatment: 'General fungicide', cost: '₹1000'};
+    return this.parseJSON(response) || {
+      primaryTreatment: 'General fungicide', 
+      fertilizers: [{type: 'Chemical', name: 'NPK 19:19:19', quantity: '50 kg/acre', purpose: 'balanced nutrition', timing: 'After treatment', cost: '₹1200-1500'}],
+      manures: [{type: 'Cow Dung', quantity: '5 tons/acre', preparation: 'Well-decomposed, mix with soil', benefits: 'Improves soil health and disease resistance', cost: '₹2000-3000'}],
+      cost: '₹1000'
+    };
   }
 
   static async generateFinalRecommendations(cropData, analysisSteps) {
-    const systemPrompt = `You are a senior agricultural consultant. Provide final recommendations. Return ONLY valid JSON:
+    const systemPrompt = `You are a senior agricultural consultant. Provide final recommendations with detailed fertilizer and manure guidance. Return ONLY valid JSON:
 {
   "cropHealth": "Excellent|Good|Fair|Poor|Critical",
   "healthScore": 75,
@@ -153,12 +187,14 @@ Select the most effective treatment for this specific issue.`, systemPrompt);
   "treatmentPlan": {
     "chemical": "${analysisSteps.treatment.activeIngredient} @ ${analysisSteps.treatment.dosage}",
     "organic": "${analysisSteps.treatment.alternativeTreatment}",
-    "frequency": "${analysisSteps.treatment.frequency}"
+    "frequency": "${analysisSteps.treatment.frequency}",
+    "fertilizers": ${JSON.stringify(analysisSteps.treatment.fertilizers || [])},
+    "manures": ${JSON.stringify(analysisSteps.treatment.manures || [])}
   },
   "recommendations": {
-    "immediate": ["Apply ${analysisSteps.treatment.primaryTreatment}", "Monitor spread", "Improve conditions"],
-    "weekly": ["Check treatment effectiveness", "Repeat if needed"],
-    "prevention": ["Use resistant varieties", "Improve field hygiene"]
+    "immediate": ["Apply ${analysisSteps.treatment.primaryTreatment}", "Apply recommended fertilizers", "Monitor spread"],
+    "weekly": ["Check treatment effectiveness", "Monitor fertilizer response", "Repeat if needed"],
+    "prevention": ["Use resistant varieties", "Regular manure application", "Improve field hygiene"]
   },
   "expectedOutcome": {
     "recoveryTime": "1-3 weeks|3-6 weeks|6-12 weeks",
@@ -173,9 +209,11 @@ Analysis Summary:
 - Problem: ${analysisSteps.identification.specificIssue}
 - Severity: ${analysisSteps.severity.severityLevel}
 - Treatment: ${analysisSteps.treatment.primaryTreatment}
+- Fertilizers: ${JSON.stringify(analysisSteps.treatment.fertilizers)}
+- Manures: ${JSON.stringify(analysisSteps.treatment.manures)}
 - Confidence: ${analysisSteps.symptoms.confidence}%
 
-Provide comprehensive final recommendations.`, systemPrompt);
+Provide comprehensive final recommendations including specific fertilizer and manure guidance.`, systemPrompt);
     
     return this.parseJSON(response) || this.getDefaultCropAnalysis();
   }
@@ -748,6 +786,35 @@ Analyze sensor data scientifically and provide precise irrigation scheduling, cl
 
     const response = await this.callAPI(`Analyze growth timeline for ${crops.join(', ')} in ${season} season. Provide detailed growth periods and critical stages.`, systemPrompt);
     return this.parseJSON(response) || crops.map(crop => ({crop, growthPeriod: '90-120 days', season: 'Kharif'}));
+  }
+
+  static getGeneralHealthAssessment(cropData) {
+    return {
+      cropHealth: 'Good',
+      healthScore: 85,
+      primaryIssue: 'No Specific Issues Detected',
+      confidence: 75,
+      diseases: [],
+      treatmentPlan: {
+        chemical: 'No specific treatment needed - crop appears healthy',
+        organic: 'Continue regular care practices',
+        frequency: 'Monitor regularly for any changes'
+      },
+      recommendations: {
+        immediate: ['Continue current care routine', 'Monitor for any symptoms', 'Maintain proper irrigation'],
+        weekly: ['Regular field inspection', 'Check for pest activity', 'Monitor weather conditions'],
+        prevention: ['Use quality seeds', 'Maintain field hygiene', 'Follow crop calendar']
+      },
+      expectedOutcome: {
+        recoveryTime: 'No treatment needed',
+        successRate: 'Crop appears healthy',
+        yieldRecovery: 'Expected normal yield'
+      },
+      generalAdvice: {
+        message: 'No specific symptoms detected. For accurate diagnosis and treatment recommendations, please provide detailed symptoms, growth issues, or pest problems.',
+        nextSteps: ['Observe crop regularly', 'Report any unusual symptoms', 'Follow standard crop care practices']
+      }
+    };
   }
 
   static getDefaultCropAnalysis() {
