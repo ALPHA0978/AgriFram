@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
-import { initDevToolsBlocker } from './utils/devToolsBlocker';
+// import { initDevToolsBlocker } from './utils/devToolsBlocker';
 import Home from './pages/Home';
 import About from './pages/About';
 import AIAnalytics from './pages/AIAnalytics';
@@ -24,15 +24,16 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 
 function App() {
-  useEffect(() => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1' ||
-                       window.location.hostname === '0.0.0.0';
-    
-    if (!isLocalhost) {
-      initDevToolsBlocker();
-    }
-  }, []);
+  // DevTools blocker disabled for development
+  // useEffect(() => {
+  //   const isLocalhost = window.location.hostname === 'localhost' || 
+  //                      window.location.hostname === '127.0.0.1' ||
+  //                      window.location.hostname === '0.0.0.0';
+  //   
+  //   if (!isLocalhost) {
+  //     initDevToolsBlocker();
+  //   }
+  // }, []);
   
   return (
     <AuthProvider>
