@@ -302,12 +302,12 @@ const MarketIntel = () => {
     const recognition = new SpeechRecognition();
 
     recognition.continuous = true;
-    recognition.interimResults = false; // important for accumulation
+    recognition.interimResults = true;
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
       setIsListening(true);
-      if (!voiceTranscript) setVoiceTranscript('');
+      setVoiceTranscript('');
     };
 
     recognition.onresult = (event) => {
@@ -315,14 +315,13 @@ const MarketIntel = () => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
       }
-      setVoiceTranscript(prev => (prev + ' ' + transcript).trim());
+      setVoiceTranscript(transcript);
     };
 
     recognition.onend = () => {
-      if (recognitionRef.current) {
-        try { recognition.start(); } catch (e) { } // Auto-restart on pauses
-      } else {
-        setIsListening(false);
+      setIsListening(false);
+      if (voiceTranscript.trim()) {
+        processVoiceInput(voiceTranscript);
       }
     };
 
@@ -337,15 +336,10 @@ const MarketIntel = () => {
   };
 
   const stopVoiceInput = () => {
-    const rec = recognitionRef.current;
-    if (rec) {
-      recognitionRef.current = null;
-      rec.stop();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
     }
     setIsListening(false);
-    if (voiceTranscript.trim()) {
-      processVoiceInput(voiceTranscript);
-    }
   };
 
   const processVoiceInput = async (transcript) => {

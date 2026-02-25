@@ -3,7 +3,7 @@
 // Primary:  Ollama Cloud (ollama.com/api) — proxied via Vite
 // ============================================================
 
-const OLLAMA_API_KEY = '053ac592a8724bd789d00ffea8d0a709.z_zq5Z_BThFPI6dkZbOBB1VQ';
+const OLLAMA_API_KEY = import.meta.env.VITE_OPENLLAMA_API_KEY;
 
 export class BaseAI {
   static sanitizeInput(input) {

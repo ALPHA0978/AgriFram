@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText, Mic, MicOff } from 'lucide-react';
-import { ScientificCropService } from '../services/scientificCropService';
+import { FarmerAI } from '../services/huggingFaceService';
 import CustomDropdown from '../components/CustomDropdown';
 import { useTranslation } from 'react-i18next';
 import { validateInput, getFieldLimits } from '../utils/validationLimits';
@@ -46,7 +46,7 @@ const CropHealth = () => {
     setCurrentStep(0);
     setStepMessage('');
     try {
-      const analysis = await ScientificCropService.analyzeCropHealth(cropData, (step, message) => {
+      const analysis = await FarmerAI.analyzeCrop(cropData, (step, message) => {
         setCurrentStep(step);
         setStepMessage(message);
       });
@@ -100,14 +100,10 @@ const CropHealth = () => {
         imageData: dataToAnalyze,
         analysisType: 'visual'
       };
-<<<<<<< HEAD
       const analysis = await FarmerAI.analyzeCrop(imageAnalysis, (step, message) => {
         setCurrentStep(step);
         setStepMessage(message);
       });
-=======
-      const analysis = await ScientificCropService.analyzeCropHealth(imageAnalysis);
->>>>>>> b1c0ef6f730291532a9ac052a352ec97bca4d496
       setCropAnalysis(analysis);
     } catch (error) {
       console.error('Image analysis error:', error);
@@ -199,7 +195,6 @@ Return ONLY valid JSON in this exact format:
     "confidence": "High / Medium / Low",
     "message": "Clear factual conclusion. If crop is dead, explicitly say so."
   }
-<<<<<<< HEAD
 }
 
 CRITICAL:
@@ -217,16 +212,6 @@ set:
         );
 
         const parsed = FarmerAI.parseJSON(response);
-=======
-}`;
-        
-        const response = await ScientificCropService.callAPI(
-          `Analyze this crop document for completeness. Required fields: cropType, plantingDate, fieldSize, symptoms, location. Document content: ${fileData}`,
-          systemPrompt
-        );
-        
-        const parsed = ScientificCropService.parseJSON(response);
->>>>>>> b1c0ef6f730291532a9ac052a352ec97bca4d496
         if (parsed && parsed.extractedData && parsed.validation) {
           // Update form data with extracted information
           const validData = Object.fromEntries(
@@ -286,12 +271,12 @@ set:
     const recognition = new SpeechRecognition();
 
     recognition.continuous = true;
-    recognition.interimResults = false; // important for accumulation
+    recognition.interimResults = true;
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
       setIsListening(true);
-      if (!voiceTranscript) setVoiceTranscript('');
+      setVoiceTranscript('');
     };
 
     recognition.onresult = (event) => {
@@ -299,14 +284,13 @@ set:
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
       }
-      setVoiceTranscript(prev => (prev + ' ' + transcript).trim());
+      setVoiceTranscript(transcript);
     };
 
     recognition.onend = () => {
-      if (recognitionRef.current) {
-        try { recognition.start(); } catch (e) { } // Auto-restart on pauses
-      } else {
-        setIsListening(false);
+      setIsListening(false);
+      if (voiceTranscript.trim()) {
+        processVoiceInput(voiceTranscript);
       }
     };
 
@@ -321,15 +305,10 @@ set:
   };
 
   const stopVoiceInput = () => {
-    const rec = recognitionRef.current;
-    if (rec) {
-      recognitionRef.current = null;
-      rec.stop();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
     }
     setIsListening(false);
-    if (voiceTranscript.trim()) {
-      processVoiceInput(voiceTranscript);
-    }
   };
 
   const processVoiceInput = async (transcript) => {
@@ -347,24 +326,14 @@ set:
   "fertilizer": "extracted fertilizer or null",
   "pesticide": "extracted pesticide or null"
 }`;
-<<<<<<< HEAD
 
       const extractedData = await FarmerAI.callAPI(
-=======
-      
-      const extractedData = await ScientificCropService.callAPI(
->>>>>>> b1c0ef6f730291532a9ac052a352ec97bca4d496
         `Extract crop information from this voice input: "${transcript}"`,
         systemPrompt,
         'qwen3-coder:480b-cloud'
       );
-<<<<<<< HEAD
 
       const parsed = FarmerAI.parseJSON(extractedData);
-=======
-      
-      const parsed = ScientificCropService.parseJSON(extractedData);
->>>>>>> b1c0ef6f730291532a9ac052a352ec97bca4d496
       if (parsed) {
         setCropData(prev => ({
           ...prev,
@@ -889,34 +858,9 @@ set:
                       </div>
                     </div>
 
-                    {/* General Advice for No Symptoms */}
-                    {cropAnalysis.generalAdvice && (
-                      <div className="p-6 rounded-xl border bg-blue-900/20 border-blue-500/30">
-                        <div className="flex items-center gap-3 mb-4">
-                          <CheckCircle className="w-6 h-6 text-blue-400" />
-                          <h4 className="text-xl font-bold text-white">Crop Assessment Complete</h4>
-                        </div>
-                        <p className="text-gray-300 mb-4">{cropAnalysis.generalAdvice.message}</p>
-                        <div>
-                          <span className="text-blue-400 font-medium">Recommended Next Steps:</span>
-                          <ul className="list-disc ml-5 text-gray-300 mt-2">
-                            {cropAnalysis.generalAdvice.nextSteps?.map((step, index) => (
-                              <li key={index}>{step}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-
                     {/* Primary Issue Alert */}
-<<<<<<< HEAD
                     {cropAnalysis.primaryIssue && cropAnalysis.primaryIssue !== 'General Health Check' && (
                       <div className={`p-6 rounded-xl border ${cropAnalysis.primaryIssue.includes('Bacterial') ? 'bg-red-900/20 border-red-500/30' :
-=======
-                    {cropAnalysis.primaryIssue && cropAnalysis.primaryIssue !== 'General Health Check' && cropAnalysis.primaryIssue !== 'No Specific Issues Detected' && (
-                      <div className={`p-6 rounded-xl border ${
-                        cropAnalysis.primaryIssue.includes('Bacterial') ? 'bg-red-900/20 border-red-500/30' :
->>>>>>> b1c0ef6f730291532a9ac052a352ec97bca4d496
                         cropAnalysis.primaryIssue.includes('Fungal') ? 'bg-orange-900/20 border-orange-500/30' :
                           cropAnalysis.primaryIssue.includes('Pest') ? 'bg-yellow-900/20 border-yellow-500/30' :
                             cropAnalysis.primaryIssue.includes('Nutrient') ? 'bg-blue-900/20 border-blue-500/30' :
@@ -938,13 +882,13 @@ set:
                     )}
 
                     {/* Treatment Plan */}
-                    {cropAnalysis.treatmentPlan && !cropAnalysis.generalAdvice && (
+                    {cropAnalysis.treatmentPlan && (
                       <div className="p-6 bg-gray-800/50 rounded-xl border border-green-400/30">
                         <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
                           <Target className="w-5 h-5 mr-2 text-green-400" />
                           Treatment Plan
                         </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           {cropAnalysis.treatmentPlan.chemical && (
                             <div>
                               <span className="text-green-400 font-medium">Chemical Treatment:</span>
@@ -964,84 +908,6 @@ set:
                             </div>
                           )}
                         </div>
-                        
-                        {/* Fertilizer Recommendations */}
-                        {cropAnalysis.treatmentPlan.fertilizers && cropAnalysis.treatmentPlan.fertilizers.length > 0 && !cropAnalysis.generalAdvice && (
-                          <div className="mb-6">
-                            <h5 className="text-lg font-semibold text-white mb-3 flex items-center">
-                              <Zap className="w-4 h-4 mr-2 text-yellow-400" />
-                              Recommended Fertilizers
-                            </h5>
-                            <div className="space-y-3">
-                              {cropAnalysis.treatmentPlan.fertilizers.map((fertilizer, index) => (
-                                <div key={index} className="p-4 bg-gray-700/50 rounded-lg border border-yellow-400/20">
-                                  <div className="flex justify-between items-start mb-2">
-                                    <h6 className="font-bold text-yellow-400">{fertilizer.name}</h6>
-                                    <span className="text-xs bg-yellow-400/20 text-yellow-400 px-2 py-1 rounded">
-                                      {fertilizer.type}
-                                    </span>
-                                  </div>
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                                    <div>
-                                      <span className="text-gray-400">Quantity:</span>
-                                      <div className="font-medium text-white">{fertilizer.quantity}</div>
-                                    </div>
-                                    <div>
-                                      <span className="text-gray-400">Purpose:</span>
-                                      <div className="font-medium text-white">{fertilizer.purpose}</div>
-                                    </div>
-                                    <div>
-                                      <span className="text-gray-400">Timing:</span>
-                                      <div className="font-medium text-white">{fertilizer.timing}</div>
-                                    </div>
-                                    <div>
-                                      <span className="text-gray-400">Cost:</span>
-                                      <div className="font-medium text-green-400">{fertilizer.cost}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Manure Recommendations */}
-                        {cropAnalysis.treatmentPlan.manures && cropAnalysis.treatmentPlan.manures.length > 0 && !cropAnalysis.generalAdvice && (
-                          <div>
-                            <h5 className="text-lg font-semibold text-white mb-3 flex items-center">
-                              <Beaker className="w-4 h-4 mr-2 text-green-400" />
-                              Recommended Manures
-                            </h5>
-                            <div className="space-y-3">
-                              {cropAnalysis.treatmentPlan.manures.map((manure, index) => (
-                                <div key={index} className="p-4 bg-gray-700/50 rounded-lg border border-green-400/20">
-                                  <div className="flex justify-between items-start mb-2">
-                                    <h6 className="font-bold text-green-400">{manure.type} Manure</h6>
-                                    <span className="text-xs bg-green-400/20 text-green-400 px-2 py-1 rounded">
-                                      Organic
-                                    </span>
-                                  </div>
-                                  <div className="mb-3">
-                                    <span className="text-gray-400 text-sm">Quantity:</span>
-                                    <div className="font-medium text-white">{manure.quantity}</div>
-                                  </div>
-                                  <div className="mb-3">
-                                    <span className="text-gray-400 text-sm">Preparation & Application:</span>
-                                    <div className="text-gray-300 text-sm">{manure.preparation}</div>
-                                  </div>
-                                  <div className="mb-3">
-                                    <span className="text-gray-400 text-sm">Benefits:</span>
-                                    <div className="text-gray-300 text-sm">{manure.benefits}</div>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-400 text-sm">Cost:</span>
-                                    <div className="font-medium text-green-400">{manure.cost}</div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     )}
 
@@ -1153,7 +1019,41 @@ set:
                       </div>
                     )}
 
-
+                    {/* Fertilizer Recommendations */}
+                    {cropAnalysis.fertilizers && cropAnalysis.fertilizers.length > 0 && (
+                      <div>
+                        <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
+                          <Zap className="w-5 h-5 mr-2 text-green-400" />
+                          Fertilizer Recommendations
+                        </h4>
+                        <div className="space-y-4">
+                          {cropAnalysis.fertilizers.map((fertilizer, index) => (
+                            <div key={index} className="p-6 bg-gray-800/50 rounded-xl border border-green-400/30 hover:border-green-400/50 transition-all duration-300">
+                              <div className="flex justify-between mb-3">
+                                <h5 className="font-bold text-green-400">{fertilizer.name}</h5>
+                                <span className="text-sm bg-green-400/20 text-green-400 px-3 py-1 rounded-full">
+                                  {fertilizer.purpose}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="text-gray-300">Quantity:</span>
+                                  <div className="font-medium text-green-400">{fertilizer.quantity}</div>
+                                </div>
+                                <div>
+                                  <span className="text-gray-300">Timing:</span>
+                                  <div className="font-medium text-green-400">{fertilizer.timing}</div>
+                                </div>
+                                <div>
+                                  <span className="text-gray-300">Cost:</span>
+                                  <div className="font-medium text-green-400">{fertilizer.cost}</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Expected Outcome */}
                     {cropAnalysis.expectedOutcome && (
