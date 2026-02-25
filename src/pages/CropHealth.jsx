@@ -64,80 +64,46 @@ const CropHealth = () => {
     }
   };
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        } 
-      });
-      setCameraOpen(true);
-      
-      // Wait for next tick to ensure modal is rendered
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(console.error);
-        }
-      }, 100);
-    } catch (error) {
-      console.error('Camera access error:', error);
-      // Try with user camera if environment camera fails
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            width: { ideal: 640 },
-            height: { ideal: 480 }
-          } 
-        });
-        setCameraOpen(true);
-        setTimeout(() => {
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.play().catch(console.error);
-          }
-        }, 100);
-      } catch (fallbackError) {
-        console.error('Fallback camera error:', fallbackError);
-        alert('Camera access denied or not available. Please check permissions.');
+  const imageInputRef = useRef(null);
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file.');
+        return;
       }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageData = e.target.result;
+        setCapturedImage(imageData);
+        // We do NOT call stopCamera/Canvas here anymore
+
+        // Auto-trigger image analysis
+        analyzeImage(imageData);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const capturePhoto = () => {
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    if (canvas && video) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-      const imageData = canvas.toDataURL('image/jpeg');
-      setCapturedImage(imageData);
-      stopCamera();
-    }
-  };
+  const analyzeImage = async (base64Data) => {
+    const dataToAnalyze = base64Data || capturedImage;
+    if (!dataToAnalyze) return;
 
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach(track => track.stop());
-    }
-    setCameraOpen(false);
-  };
-
-  const analyzeImage = async () => {
-    if (!capturedImage) return;
     setIsAnalyzing(true);
+    setCurrentStep(0);
+    setStepMessage('Visual Analysis Initiated...');
     try {
       const imageAnalysis = {
         ...cropData,
-        imageData: capturedImage,
+        imageData: dataToAnalyze,
         analysisType: 'visual'
       };
-      const analysis = await FarmerAI.analyzeCrop(imageAnalysis);
+      const analysis = await FarmerAI.analyzeCrop(imageAnalysis, (step, message) => {
+        setCurrentStep(step);
+        setStepMessage(message);
+      });
       setCropAnalysis(analysis);
     } catch (error) {
       console.error('Image analysis error:', error);
@@ -162,7 +128,7 @@ const CropHealth = () => {
     setIsProcessingDoc(true);
     setDocValidation(null);
     setProcessingProgress(0);
-    
+
     // Simulate progress updates
     const progressInterval = setInterval(() => {
       setProcessingProgress(prev => {
@@ -170,7 +136,7 @@ const CropHealth = () => {
         return prev + Math.random() * 15;
       });
     }, 300);
-    
+
     // Validate file type - Only documents and text files
     const validTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!validTypes.includes(file.type)) {
@@ -187,46 +153,73 @@ const CropHealth = () => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const fileData = e.target.result;
-        
-        const systemPrompt = `Extract crop health data from this document. Check for ALL these fields and return ONLY valid JSON:
+
+        const systemPrompt = `
+You are an agricultural data validation AI.
+
+STRICT RULES:
+1. Do NOT assume or invent missing data.
+2. Do NOT give optimistic or generic crop advice.
+3. First check if the scenario is biologically and logically possible.
+4. If data indicates the crop cycle is impossible (e.g., planted years ago but no growth), mark crop as FAILED or DEAD.
+5. If information conflicts with agricultural science, flag it clearly.
+6. If information is insufficient, return null values and explain clearly.
+7. Be direct, factual, and concise. No sugarcoating.
+
+TASK:
+Extract crop health data from this document.
+Return ONLY valid JSON in this exact format:
+
 {
   "extractedData": {
-    "cropType": "crop name (e.g., Wheat, Rice, Tomato) or null",
-    "variety": "crop variety (e.g., Basmati, IR64, Cherry) or null",
-    "plantingDate": "planting date in YYYY-MM-DD format or null",
-    "fieldSize": "field size in acres or null",
-    "growthStage": "growth stage (Seedling/Vegetative/Flowering/Fruiting/Maturity) or null",
-    "symptoms": "observed symptoms description or null",
-    "location": "farm location (City, State) or null",
-    "weatherConditions": "weather conditions (rainfall, temperature) or null",
-    "irrigationMethod": "irrigation method (Drip/Sprinkler/Flood/Rainfed) or null",
-    "fertilizer": "fertilizer used (e.g., NPK 10:26:26, Urea) or null",
-    "pesticide": "pesticide applied (e.g., Neem oil, Chlorpyrifos) or null"
+    "cropType": null,
+    "variety": null,
+    "plantingDate": null,
+    "fieldSize": null,
+    "growthStage": null,
+    "symptoms": null,
+    "location": null,
+    "weatherConditions": null,
+    "irrigationMethod": null,
+    "fertilizer": null,
+    "pesticide": null,
+    "cropStatus": "Healthy / Stressed / Diseased / Failed / Dead / Invalid Data"
   },
   "validation": {
     "isComplete": true/false,
-    "extractedCount": "number of fields extracted",
-    "totalFields": 11,
-    "missingFields": ["list of missing field names"],
-    "confidence": "High/Medium/Low",
-    "message": "Document analysis result"
+    "isLogicallyValid": true/false,
+    "biologicalConflict": "Explain if timeline or growth is impossible",
+    "extractedCount": number,
+    "totalFields": 12,
+    "missingFields": [],
+    "confidence": "High / Medium / Low",
+    "message": "Clear factual conclusion. If crop is dead, explicitly say so."
   }
-}`;
-        
+}
+
+CRITICAL:
+If planting date is older than realistic crop cycle (e.g., rice > 6 months without harvest),
+set:
+- cropStatus = "Failed" or "Dead"
+- isLogicallyValid = false
+- confidence = High
+- message must clearly state crop failure.
+`;
+
         const response = await FarmerAI.callAPI(
           `Analyze this crop document for completeness. Required fields: cropType, plantingDate, fieldSize, symptoms, location. Document content: ${fileData}`,
           systemPrompt
         );
-        
+
         const parsed = FarmerAI.parseJSON(response);
         if (parsed && parsed.extractedData && parsed.validation) {
           // Update form data with extracted information
           const validData = Object.fromEntries(
             Object.entries(parsed.extractedData).filter(([_, value]) => value && value !== "null" && value !== "")
           );
-          
+
           setCropData(prev => ({ ...prev, ...validData }));
-          
+
           // Set validation results
           setDocValidation({
             isValid: parsed.validation.isComplete,
@@ -248,7 +241,7 @@ const CropHealth = () => {
           });
         }
       };
-      
+
       // Read all files as text since we only accept documents
       reader.readAsText(file);
     } catch (error) {
@@ -276,75 +269,82 @@ const CropHealth = () => {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false; // important for accumulation
     recognition.lang = 'en-US';
-    
+
     recognition.onstart = () => {
       setIsListening(true);
-      setVoiceTranscript('');
+      if (!voiceTranscript) setVoiceTranscript('');
     };
-    
+
     recognition.onresult = (event) => {
       let transcript = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
       }
-      setVoiceTranscript(transcript);
+      setVoiceTranscript(prev => (prev + ' ' + transcript).trim());
     };
-    
+
     recognition.onend = () => {
-      setIsListening(false);
-      if (voiceTranscript.trim()) {
-        processVoiceInput(voiceTranscript);
+      if (recognitionRef.current) {
+        try { recognition.start(); } catch (e) { } // Auto-restart on pauses
+      } else {
+        setIsListening(false);
       }
     };
-    
+
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
       alert('Voice recognition error. Please try again.');
     };
-    
+
     recognitionRef.current = recognition;
     recognition.start();
   };
 
   const stopVoiceInput = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+    const rec = recognitionRef.current;
+    if (rec) {
+      recognitionRef.current = null;
+      rec.stop();
     }
     setIsListening(false);
+    if (voiceTranscript.trim()) {
+      processVoiceInput(voiceTranscript);
+    }
   };
 
   const processVoiceInput = async (transcript) => {
     try {
-      const systemPrompt = `Extract crop health data from this voice input. Return ONLY valid JSON:
+      const systemPrompt = `Extract crop health data from this voice input. Return ONLY valid JSON. If a value is NOT explicitly mentioned in the text, you MUST set it to null.
 {
-  "cropType": "crop name if mentioned",
-  "variety": "variety if mentioned", 
-  "fieldSize": "field size if mentioned",
-  "symptoms": "symptoms described",
-  "location": "location if mentioned",
-  "weatherConditions": "weather if mentioned",
-  "growthStage": "growth stage if mentioned",
-  "irrigationMethod": "irrigation if mentioned",
-  "fertilizer": "fertilizer if mentioned",
-  "pesticide": "pesticide if mentioned"
+  "cropType": "extracted crop name or null",
+  "variety": "extracted variety or null", 
+  "fieldSize": "extracted field size or null",
+  "symptoms": "extracted symptoms or null",
+  "location": "extracted location or null",
+  "weatherConditions": "extracted weather or null",
+  "growthStage": "extracted growth stage or null",
+  "irrigationMethod": "extracted irrigation or null",
+  "fertilizer": "extracted fertilizer or null",
+  "pesticide": "extracted pesticide or null"
 }`;
-      
+
       const extractedData = await FarmerAI.callAPI(
         `Extract crop information from this voice input: "${transcript}"`,
-        systemPrompt
+        systemPrompt,
+        'qwen3-coder:480b-cloud'
       );
-      
+
       const parsed = FarmerAI.parseJSON(extractedData);
       if (parsed) {
         setCropData(prev => ({
           ...prev,
           ...Object.fromEntries(
-            Object.entries(parsed).filter(([_, value]) => value && value !== "")
+            Object.entries(parsed).filter(([_, value]) => value && value !== "null")
           )
         }));
       }
@@ -356,7 +356,7 @@ const CropHealth = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-inter relative overflow-hidden">
-      
+
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
@@ -369,7 +369,7 @@ const CropHealth = () => {
           <div className="text-2xl font-black text-white tracking-tight">
             <span className="text-green-400">AgriFarm</span>AI
           </div>
-          <button 
+          <button
             onClick={() => navigate('/farming-tool')}
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
           >
@@ -380,7 +380,7 @@ const CropHealth = () => {
       </nav>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24">
-        
+
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
@@ -407,8 +407,8 @@ const CropHealth = () => {
                     value={cropData.cropType}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      setCropData(prev => ({...prev, cropType: newValue}));
-                      
+                      setCropData(prev => ({ ...prev, cropType: newValue }));
+
                       const validation = validateInput(newValue, 'cropType', 'crop');
                       setValidationErrors(prev => ({
                         ...prev,
@@ -416,11 +416,10 @@ const CropHealth = () => {
                       }));
                     }}
                     placeholder="e.g., Wheat, Rice, Tomato"
-                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
-                      validationErrors.cropType 
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
-                    }`}
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${validationErrors.cropType
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                      }`}
                   />
                   {validationErrors.cropType && (
                     <p className="text-red-400 text-xs mt-1">{validationErrors.cropType}</p>
@@ -438,8 +437,8 @@ const CropHealth = () => {
                     value={cropData.variety || ''}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      setCropData(prev => ({...prev, variety: newValue}));
-                      
+                      setCropData(prev => ({ ...prev, variety: newValue }));
+
                       const validation = validateInput(newValue, 'variety', 'crop');
                       setValidationErrors(prev => ({
                         ...prev,
@@ -447,11 +446,10 @@ const CropHealth = () => {
                       }));
                     }}
                     placeholder="e.g., Basmati, IR64, Cherry"
-                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
-                      validationErrors.variety 
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
-                    }`}
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${validationErrors.variety
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                      }`}
                   />
                   {validationErrors.variety && (
                     <p className="text-red-400 text-xs mt-1">{validationErrors.variety}</p>
@@ -466,7 +464,7 @@ const CropHealth = () => {
                 <input
                   type="date"
                   value={cropData.plantingDate}
-                  onChange={(e) => setCropData(prev => ({...prev, plantingDate: e.target.value}))}
+                  onChange={(e) => setCropData(prev => ({ ...prev, plantingDate: e.target.value }))}
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                 />
               </div>
@@ -474,7 +472,7 @@ const CropHealth = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Growth Stage</label>
                 <CustomDropdown
                   value={cropData.growthStage || ''}
-                  onChange={(value) => setCropData(prev => ({...prev, growthStage: value}))}
+                  onChange={(value) => setCropData(prev => ({ ...prev, growthStage: value }))}
                   placeholder="Select Stage"
                   onToggle={setDropdownOpen}
                   options={[
@@ -494,8 +492,8 @@ const CropHealth = () => {
                     value={cropData.fieldSize}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      setCropData(prev => ({...prev, fieldSize: newValue}));
-                      
+                      setCropData(prev => ({ ...prev, fieldSize: newValue }));
+
                       const validation = validateInput(newValue, 'fieldSize', 'crop');
                       setValidationErrors(prev => ({
                         ...prev,
@@ -503,11 +501,10 @@ const CropHealth = () => {
                       }));
                     }}
                     placeholder="5"
-                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
-                      validationErrors.fieldSize 
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
-                    }`}
+                    className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${validationErrors.fieldSize
+                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                      }`}
                   />
                   {validationErrors.fieldSize && (
                     <p className="text-red-400 text-xs mt-1">{validationErrors.fieldSize}</p>
@@ -521,7 +518,7 @@ const CropHealth = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Irrigation Method</label>
                 <CustomDropdown
                   value={cropData.irrigationMethod || ''}
-                  onChange={(value) => setCropData(prev => ({...prev, irrigationMethod: value}))}
+                  onChange={(value) => setCropData(prev => ({ ...prev, irrigationMethod: value }))}
                   placeholder="Select Method"
                   onToggle={setDropdownOpen}
                   options={[
@@ -537,7 +534,7 @@ const CropHealth = () => {
                 <input
                   type="text"
                   value={cropData.fertilizer || ''}
-                  onChange={(e) => setCropData(prev => ({...prev, fertilizer: e.target.value}))}
+                  onChange={(e) => setCropData(prev => ({ ...prev, fertilizer: e.target.value }))}
                   placeholder="e.g., NPK 10:26:26, Urea"
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                 />
@@ -547,7 +544,7 @@ const CropHealth = () => {
                 <input
                   type="text"
                   value={cropData.pesticide || ''}
-                  onChange={(e) => setCropData(prev => ({...prev, pesticide: e.target.value}))}
+                  onChange={(e) => setCropData(prev => ({ ...prev, pesticide: e.target.value }))}
                   placeholder="e.g., Neem oil, Chlorpyrifos"
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                 />
@@ -557,7 +554,7 @@ const CropHealth = () => {
                 <input
                   type="text"
                   value={cropData.location}
-                  onChange={(e) => setCropData(prev => ({...prev, location: e.target.value}))}
+                  onChange={(e) => setCropData(prev => ({ ...prev, location: e.target.value }))}
                   placeholder="City, State"
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                 />
@@ -566,7 +563,7 @@ const CropHealth = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Observed Symptoms</label>
                 <textarea
                   value={cropData.symptoms}
-                  onChange={(e) => setCropData(prev => ({...prev, symptoms: e.target.value}))}
+                  onChange={(e) => setCropData(prev => ({ ...prev, symptoms: e.target.value }))}
                   placeholder="Describe symptoms..."
                   rows={4}
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
@@ -577,7 +574,7 @@ const CropHealth = () => {
                 <input
                   type="text"
                   value={cropData.weatherConditions}
-                  onChange={(e) => setCropData(prev => ({...prev, weatherConditions: e.target.value}))}
+                  onChange={(e) => setCropData(prev => ({ ...prev, weatherConditions: e.target.value }))}
                   placeholder="Rainfall, temperature..."
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                 />
@@ -604,11 +601,10 @@ const CropHealth = () => {
               <button
                 onClick={isListening ? stopVoiceInput : startVoiceInput}
                 disabled={isAnalyzing || isProcessingDoc}
-                className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${
-                  isListening 
-                    ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-                    : 'bg-green-500 hover:bg-green-600'
-                } text-white disabled:bg-gray-600 disabled:text-gray-400`}
+                className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${isListening
+                  ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                  : 'bg-green-500 hover:bg-green-600'
+                  } text-white disabled:bg-gray-600 disabled:text-gray-400`}
               >
                 {isListening ? (
                   <>
@@ -623,12 +619,12 @@ const CropHealth = () => {
                 )}
               </button>
               <button
-                onClick={startCamera}
+                onClick={() => imageInputRef.current?.click()}
                 disabled={isAnalyzing || isProcessingDoc || isListening}
                 className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white py-4 rounded-lg transition-all duration-300 disabled:bg-gray-600 disabled:text-gray-400 font-semibold"
               >
                 <Camera className="w-5 h-5" />
-                <span>Camera Scan</span>
+                <span>Camera / Upload</span>
               </button>
               <button
                 onClick={analyzeCropWithAI}
@@ -664,6 +660,14 @@ const CropHealth = () => {
               type="file"
               accept=".pdf,.txt,.doc,.docx"
               onChange={handleDocumentUpload}
+              className="hidden"
+            />
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageUpload}
               className="hidden"
             />
             {uploadedDoc && (
@@ -706,14 +710,13 @@ const CropHealth = () => {
                 )}
               </div>
             )}
-            
+
             {/* Document Validation Results */}
             {docValidation && (
-              <div className={`mt-4 p-4 rounded-xl border ${
-                docValidation.isValid 
-                  ? 'bg-green-900/20 border-green-500/30 text-green-300'
-                  : 'bg-red-900/20 border-red-500/30 text-red-300'
-              }`}>
+              <div className={`mt-4 p-4 rounded-xl border ${docValidation.isValid
+                ? 'bg-green-900/20 border-green-500/30 text-green-300'
+                : 'bg-red-900/20 border-red-500/30 text-red-300'
+                }`}>
                 <div className="flex items-start gap-3">
                   {docValidation.isValid ? (
                     <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
@@ -725,7 +728,7 @@ const CropHealth = () => {
                       {docValidation.isValid ? 'Document Validated Successfully' : 'Document Incomplete'}
                     </p>
                     <p className="text-sm opacity-90 mb-3">{docValidation.message}</p>
-                    
+
                     {docValidation.extractedFields && docValidation.extractedFields.length > 0 && (
                       <div className="mb-3">
                         <p className="text-sm font-medium mb-1">Extracted Fields:</p>
@@ -738,7 +741,7 @@ const CropHealth = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {docValidation.missingFields && docValidation.missingFields.length > 0 && (
                       <div>
                         <p className="text-sm font-medium mb-1">Missing Required Fields:</p>
@@ -754,7 +757,7 @@ const CropHealth = () => {
                         </p>
                       </div>
                     )}
-                    
+
                     {docValidation.confidence && (
                       <div className="mt-3 text-xs opacity-75">
                         <p>Confidence: {docValidation.confidence}</p>
@@ -781,17 +784,15 @@ const CropHealth = () => {
                   <div className="flex justify-center items-center space-x-4 mb-6">
                     {[1, 2, 3, 4, 5].map((step) => (
                       <div key={step} className="flex items-center">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-lg ${
-                          currentStep > step ? 'bg-green-500 text-white shadow-green-500/30' :
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-lg ${currentStep > step ? 'bg-green-500 text-white shadow-green-500/30' :
                           currentStep === step ? 'bg-green-400 text-white animate-pulse shadow-green-400/40' :
-                          'bg-gray-700 text-gray-400 shadow-gray-700/20'
-                        }`}>
+                            'bg-gray-700 text-gray-400 shadow-gray-700/20'
+                          }`}>
                           {currentStep > step ? '✓' : step}
                         </div>
                         {step < 5 && (
-                          <div className={`w-16 h-1 mx-3 rounded-full transition-all duration-500 ${
-                            currentStep > step ? 'bg-green-500' : 'bg-gray-700'
-                          }`}></div>
+                          <div className={`w-16 h-1 mx-3 rounded-full transition-all duration-500 ${currentStep > step ? 'bg-green-500' : 'bg-gray-700'
+                            }`}></div>
                         )}
                       </div>
                     ))}
@@ -827,15 +828,24 @@ const CropHealth = () => {
                   </div>
                 ) : (
                   <>
+                    {/* Fallback Disclaimer Banner */}
+                    {cropAnalysis._isFallback && (
+                      <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/40 rounded-xl flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-yellow-400 font-semibold text-sm mb-1">⚠️ Fallback Data Notice</p>
+                          <p className="text-yellow-300 text-xs leading-relaxed">{cropAnalysis._fallbackDisclaimer}</p>
+                        </div>
+                      </div>
+                    )}
                     {/* Overview Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="p-6 bg-gray-800/50 border border-red-400/30 rounded-[20px] text-center hover:border-red-400/50 transition-all duration-300">
-                        <div className={`text-3xl font-bold mb-2 ${
-                          cropAnalysis.cropHealth === 'Excellent' ? 'text-green-400' :
+                        <div className={`text-3xl font-bold mb-2 ${cropAnalysis.cropHealth === 'Excellent' ? 'text-green-400' :
                           cropAnalysis.cropHealth === 'Good' ? 'text-green-300' :
-                          cropAnalysis.cropHealth === 'Fair' ? 'text-yellow-400' :
-                          cropAnalysis.cropHealth === 'Poor' ? 'text-red-400' : 'text-red-500'
-                        }`}>
+                            cropAnalysis.cropHealth === 'Fair' ? 'text-yellow-400' :
+                              cropAnalysis.cropHealth === 'Poor' ? 'text-red-400' : 'text-red-500'
+                          }`}>
                           {cropAnalysis.cropHealth || 'Good'}
                         </div>
                         <div className="text-gray-300 font-medium">Crop Status</div>
@@ -856,21 +866,19 @@ const CropHealth = () => {
 
                     {/* Primary Issue Alert */}
                     {cropAnalysis.primaryIssue && cropAnalysis.primaryIssue !== 'General Health Check' && (
-                      <div className={`p-6 rounded-xl border ${
-                        cropAnalysis.primaryIssue.includes('Bacterial') ? 'bg-red-900/20 border-red-500/30' :
+                      <div className={`p-6 rounded-xl border ${cropAnalysis.primaryIssue.includes('Bacterial') ? 'bg-red-900/20 border-red-500/30' :
                         cropAnalysis.primaryIssue.includes('Fungal') ? 'bg-orange-900/20 border-orange-500/30' :
-                        cropAnalysis.primaryIssue.includes('Pest') ? 'bg-yellow-900/20 border-yellow-500/30' :
-                        cropAnalysis.primaryIssue.includes('Nutrient') ? 'bg-blue-900/20 border-blue-500/30' :
-                        'bg-gray-900/20 border-gray-500/30'
-                      }`}>
+                          cropAnalysis.primaryIssue.includes('Pest') ? 'bg-yellow-900/20 border-yellow-500/30' :
+                            cropAnalysis.primaryIssue.includes('Nutrient') ? 'bg-blue-900/20 border-blue-500/30' :
+                              'bg-gray-900/20 border-gray-500/30'
+                        }`}>
                         <div className="flex items-center gap-3 mb-4">
-                          <AlertTriangle className={`w-6 h-6 ${
-                            cropAnalysis.primaryIssue.includes('Bacterial') ? 'text-red-400' :
+                          <AlertTriangle className={`w-6 h-6 ${cropAnalysis.primaryIssue.includes('Bacterial') ? 'text-red-400' :
                             cropAnalysis.primaryIssue.includes('Fungal') ? 'text-orange-400' :
-                            cropAnalysis.primaryIssue.includes('Pest') ? 'text-yellow-400' :
-                            cropAnalysis.primaryIssue.includes('Nutrient') ? 'text-blue-400' :
-                            'text-gray-400'
-                          }`} />
+                              cropAnalysis.primaryIssue.includes('Pest') ? 'text-yellow-400' :
+                                cropAnalysis.primaryIssue.includes('Nutrient') ? 'text-blue-400' :
+                                  'text-gray-400'
+                            }`} />
                           <h4 className="text-xl font-bold text-white">Identified Issue: {cropAnalysis.primaryIssue}</h4>
                         </div>
                         {cropAnalysis.overallAssessment && (
@@ -946,17 +954,15 @@ const CropHealth = () => {
                               <div className="flex justify-between mb-4">
                                 <h5 className="text-lg font-bold text-red-400">{disease.name}</h5>
                                 <div className="space-x-2">
-                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    disease.severity === 'Critical' ? 'bg-red-200 text-red-800' :
+                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${disease.severity === 'Critical' ? 'bg-red-200 text-red-800' :
                                     disease.severity === 'High' ? 'bg-orange-200 text-orange-800' :
-                                    disease.severity === 'Medium' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'
-                                  }`}>
+                                      disease.severity === 'Medium' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'
+                                    }`}>
                                     {disease.severity}
                                   </span>
-                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    disease.urgency === 'Immediate' ? 'bg-red-200 text-red-800' :
+                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${disease.urgency === 'Immediate' ? 'bg-red-200 text-red-800' :
                                     disease.urgency === 'Within week' ? 'bg-orange-200 text-orange-800' : 'bg-blue-200 text-blue-800'
-                                  }`}>
+                                    }`}>
                                     {disease.urgency}
                                   </span>
                                 </div>

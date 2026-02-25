@@ -67,7 +67,7 @@ const SoilAnalysis = () => {
   const processDocument = async (file) => {
     setIsProcessingDoc(true);
     setProcessingProgress(0);
-    
+
     const progressInterval = setInterval(() => {
       setProcessingProgress(prev => {
         if (prev >= 90) return prev;
@@ -78,7 +78,7 @@ const SoilAnalysis = () => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const fileData = e.target.result;
-        
+
         const systemPrompt = `Extract soil test data from this document. Check for ALL these fields and return ONLY valid JSON:
 {
   "extractedData": {
@@ -100,19 +100,19 @@ const SoilAnalysis = () => {
     "message": "Document analysis result"
   }
 }`;
-        
+
         const extractedData = await BaseAI.callAPI(
           `Analyze this soil test report and extract all soil parameters. Document content: ${fileData}`,
           systemPrompt
         );
-        
+
         const parsed = BaseAI.parseJSON(extractedData);
         if (parsed && parsed.extractedData && parsed.validation) {
           const validData = Object.fromEntries(
             Object.entries(parsed.extractedData).filter(([_, value]) => value && value !== "null" && value !== "")
           );
           setSoilData(prev => ({ ...prev, ...validData }));
-          
+
           // Set validation results
           setDocValidation({
             isValid: parsed.validation.isComplete,
@@ -157,16 +157,16 @@ const SoilAnalysis = () => {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
-    
+
     recognition.onstart = () => {
       setIsListening(true);
       setVoiceTranscript('');
     };
-    
+
     recognition.onresult = (event) => {
       let transcript = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -174,20 +174,20 @@ const SoilAnalysis = () => {
       }
       setVoiceTranscript(transcript);
     };
-    
+
     recognition.onend = () => {
       setIsListening(false);
       if (voiceTranscript.trim()) {
         processVoiceInput(voiceTranscript);
       }
     };
-    
+
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
       alert('Voice recognition error. Please try again.');
     };
-    
+
     recognitionRef.current = recognition;
     recognition.start();
   };
@@ -201,29 +201,30 @@ const SoilAnalysis = () => {
 
   const processVoiceInput = async (transcript) => {
     try {
-      const systemPrompt = `Extract soil test data from this voice input. Return ONLY valid JSON:
+      const systemPrompt = `Extract soil test data from this voice input. Return ONLY valid JSON. If a value is NOT explicitly mentioned in the text, you MUST set it to null.
 {
-  "ph": "pH value if mentioned",
-  "moisture": "moisture percentage if mentioned",
-  "organicMatter": "organic matter if mentioned",
-  "nitrogen": "nitrogen level if mentioned",
-  "phosphorus": "phosphorus level if mentioned",
-  "potassium": "potassium level if mentioned",
-  "salinity": "salinity if mentioned",
-  "temperature": "soil temperature if mentioned"
+  "ph": "pH value or null",
+  "moisture": "moisture percentage or null",
+  "organicMatter": "organic matter or null",
+  "nitrogen": "nitrogen level or null",
+  "phosphorus": "phosphorus level or null",
+  "potassium": "potassium level or null",
+  "salinity": "salinity or null",
+  "temperature": "soil temperature or null"
 }`;
-      
+
       const extractedData = await BaseAI.callAPI(
         `Extract soil information from this voice input: "${transcript}"`,
-        systemPrompt
+        systemPrompt,
+        'qwen3-coder:480b-cloud'
       );
-      
+
       const parsed = BaseAI.parseJSON(extractedData);
       if (parsed) {
         setSoilData(prev => ({
           ...prev,
           ...Object.fromEntries(
-            Object.entries(parsed).filter(([_, value]) => value && value !== "")
+            Object.entries(parsed).filter(([_, value]) => value && value !== "null")
           )
         }));
       }
@@ -235,7 +236,7 @@ const SoilAnalysis = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-inter relative overflow-hidden">
-      
+
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
@@ -248,7 +249,7 @@ const SoilAnalysis = () => {
           <div className="text-2xl font-black text-white tracking-tight">
             <span className="text-green-400">AgriFarm</span>AI
           </div>
-          <button 
+          <button
             onClick={() => navigate('/farming-tool')}
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
           >
@@ -259,7 +260,7 @@ const SoilAnalysis = () => {
       </nav>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24">
-        
+
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
@@ -289,8 +290,8 @@ const SoilAnalysis = () => {
                       value={value}
                       onChange={(e) => {
                         const newValue = e.target.value;
-                        setSoilData(prev => ({...prev, [key]: newValue}));
-                        
+                        setSoilData(prev => ({ ...prev, [key]: newValue }));
+
                         // Validate input
                         const validation = validateInput(newValue, key, 'soil');
                         setValidationErrors(prev => ({
@@ -299,11 +300,10 @@ const SoilAnalysis = () => {
                         }));
                       }}
                       placeholder={`Enter ${key}`}
-                      className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${
-                        validationErrors[key] 
-                          ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                          : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
-                      }`}
+                      className={`w-full px-4 py-3 bg-gray-800/50 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-all duration-200 ${validationErrors[key]
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                        : 'border-gray-700/50 focus:ring-green-500 focus:border-green-500'
+                        }`}
                     />
                     {validationErrors[key] && (
                       <p className="text-red-400 text-xs mt-1">{validationErrors[key]}</p>
@@ -336,11 +336,10 @@ const SoilAnalysis = () => {
               <button
                 onClick={isListening ? stopVoiceInput : startVoiceInput}
                 disabled={isAnalyzing || isProcessingDoc}
-                className={`flex items-center justify-center space-x-2 py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
-                  isListening 
-                    ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-red-500/30' 
-                    : 'bg-green-500 hover:bg-green-600 shadow-green-500/30'
-                } text-white disabled:bg-gray-600 disabled:cursor-not-allowed`}
+                className={`flex items-center justify-center space-x-2 py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${isListening
+                  ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-red-500/30'
+                  : 'bg-green-500 hover:bg-green-600 shadow-green-500/30'
+                  } text-white disabled:bg-gray-600 disabled:cursor-not-allowed`}
               >
                 {isListening ? (
                   <>
@@ -430,14 +429,13 @@ const SoilAnalysis = () => {
                 )}
               </div>
             )}
-            
+
             {/* Document Validation Results */}
             {docValidation && (
-              <div className={`mt-4 p-4 rounded-xl border ${
-                docValidation.isValid 
-                  ? 'bg-green-900/20 border-green-500/30 text-green-300'
-                  : 'bg-red-900/20 border-red-500/30 text-red-300'
-              }`}>
+              <div className={`mt-4 p-4 rounded-xl border ${docValidation.isValid
+                ? 'bg-green-900/20 border-green-500/30 text-green-300'
+                : 'bg-red-900/20 border-red-500/30 text-red-300'
+                }`}>
                 <div className="flex items-start gap-3">
                   {docValidation.isValid ? (
                     <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
@@ -449,7 +447,7 @@ const SoilAnalysis = () => {
                       {docValidation.isValid ? 'Document Validated Successfully' : 'Document Incomplete'}
                     </p>
                     <p className="text-sm opacity-90 mb-3">{docValidation.message}</p>
-                    
+
                     {docValidation.extractedFields && docValidation.extractedFields.length > 0 && (
                       <div className="mb-3">
                         <p className="text-sm font-medium mb-1">Extracted Fields:</p>
@@ -462,7 +460,7 @@ const SoilAnalysis = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {docValidation.missingFields && docValidation.missingFields.length > 0 && (
                       <div>
                         <p className="text-sm font-medium mb-1">Missing Required Fields:</p>
@@ -478,7 +476,7 @@ const SoilAnalysis = () => {
                         </p>
                       </div>
                     )}
-                    
+
                     {docValidation.confidence && (
                       <div className="mt-3 text-xs opacity-75">
                         <p>Confidence: {docValidation.confidence}</p>
@@ -505,17 +503,15 @@ const SoilAnalysis = () => {
                   <div className="flex justify-center items-center space-x-4 mb-6">
                     {[1, 2, 3, 4, 5].map((step) => (
                       <div key={step} className="flex items-center">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-lg ${
-                          currentStep > step ? 'bg-green-500 text-white shadow-green-500/30' :
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shadow-lg ${currentStep > step ? 'bg-green-500 text-white shadow-green-500/30' :
                           currentStep === step ? 'bg-green-400 text-white animate-pulse shadow-green-400/40' :
-                          'bg-gray-700 text-gray-400 shadow-gray-700/20'
-                        }`}>
+                            'bg-gray-700 text-gray-400 shadow-gray-700/20'
+                          }`}>
                           {currentStep > step ? '✓' : step}
                         </div>
                         {step < 5 && (
-                          <div className={`w-16 h-1 mx-3 rounded-full transition-all duration-500 ${
-                            currentStep > step ? 'bg-green-500' : 'bg-gray-700'
-                          }`}></div>
+                          <div className={`w-16 h-1 mx-3 rounded-full transition-all duration-500 ${currentStep > step ? 'bg-green-500' : 'bg-gray-700'
+                            }`}></div>
                         )}
                       </div>
                     ))}
@@ -551,59 +547,62 @@ const SoilAnalysis = () => {
                   </div>
                 ) : (
                   <>
+                    {/* Fallback Disclaimer Banner */}
+                    {soilAnalysis._isFallback && (
+                      <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/40 rounded-xl flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-yellow-400 font-semibold text-sm mb-1">⚠️ Fallback Data Notice</p>
+                          <p className="text-yellow-300 text-xs leading-relaxed">{soilAnalysis._fallbackDisclaimer}</p>
+                        </div>
+                      </div>
+                    )}
                     {/* Overview Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="p-6 bg-gray-800/50 rounded-2xl border border-green-400/30 text-center hover:border-green-400/50 transition-all duration-300">
-                        <div className="text-3xl font-bold text-green-400 mb-2">Alkaline</div>
+                        <div className="text-3xl font-bold text-green-400 mb-2">{soilAnalysis.soilType || 'Unknown'}</div>
                         <div className="text-gray-300 font-medium">Soil Type</div>
                       </div>
                       <div className="p-6 bg-gray-800/50 rounded-2xl border border-blue-400/30 text-center hover:border-blue-400/50 transition-all duration-300">
-                        <div className="text-3xl font-bold text-blue-400 mb-2">Very high (12)</div>
+                        <div className="text-3xl font-bold text-blue-400 mb-2">{soilAnalysis.pH || 'N/A'}</div>
                         <div className="text-gray-300 font-medium">pH Level</div>
-                        <div className="text-xs text-gray-400 mt-2">Requires sulfur amendments</div>
                       </div>
                       <div className="p-6 bg-gray-800/50 rounded-2xl border border-purple-400/30 text-center hover:border-purple-400/50 transition-all duration-300">
-                        <div className="text-3xl font-bold text-purple-400 mb-2">60%</div>
+                        <div className="text-3xl font-bold text-purple-400 mb-2">{soilAnalysis.healthScore || 0}%</div>
                         <div className="text-gray-300 font-medium">Health Score</div>
                       </div>
                     </div>
 
                     {/* NPK Dashboard */}
-                    <div>
-                      <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
-                        <Beaker className="w-5 h-5 mr-2 text-green-400" />
-                        NPK Nutrient Analysis
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="p-6 rounded-2xl border border-green-400/30 bg-green-400/10 hover:border-green-400/50 transition-all duration-300">
-                          <div className="flex justify-between mb-2">
-                            <span className="font-medium text-gray-300">nitrogen (21 ppm)</span>
-                          </div>
-                          <div className="text-2xl font-bold mb-3 text-green-400">High</div>
-                          <div className="h-2 bg-gray-700 rounded-full">
-                            <div className="h-2 rounded-full bg-green-400 w-full transition-all duration-500"></div>
-                          </div>
-                        </div>
-                        <div className="p-6 rounded-2xl border border-red-400/30 bg-red-400/10 hover:border-red-400/50 transition-all duration-300">
-                          <div className="flex justify-between mb-2">
-                            <span className="font-medium text-gray-300">phosphorus (5 ppm)</span>
-                          </div>
-                          <div className="text-2xl font-bold mb-3 text-red-400">Low</div>
-                          <div className="h-2 bg-gray-700 rounded-full">
-                            <div className="h-2 rounded-full bg-red-400 w-1/3 transition-all duration-500"></div>
-                          </div>
-                        </div>
-                        <div className="p-6 rounded-2xl border border-yellow-400/30 bg-yellow-400/10 hover:border-yellow-400/50 transition-all duration-300">
-                          <div className="flex justify-between mb-2">
-                            <span className="font-medium text-gray-300">potassium (12 ppm)</span>
-                          </div>
-                          <div className="text-2xl font-bold mb-3 text-yellow-400">Medium</div>
-                          <div className="h-2 bg-gray-700 rounded-full">
-                            <div className="h-2 rounded-full bg-yellow-400 w-2/3 transition-all duration-500"></div>
-                          </div>
+                    {soilAnalysis.nutrients && (
+                      <div>
+                        <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
+                          <Beaker className="w-5 h-5 mr-2 text-green-400" />
+                          NPK Nutrient Analysis
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {['nitrogen', 'phosphorus', 'potassium'].map((nutrient) => {
+                            const value = soilAnalysis.nutrients[nutrient] || 'N/A';
+                            const level = typeof value === 'string' ? value.split('(')[0].trim() : value;
+                            const color = level.toLowerCase().includes('high') ? 'green' :
+                              level.toLowerCase().includes('low') ? 'red' : 'yellow';
+                            const width = level.toLowerCase().includes('high') ? 'w-full' :
+                              level.toLowerCase().includes('low') ? 'w-1/3' : 'w-2/3';
+                            return (
+                              <div key={nutrient} className={`p-6 rounded-2xl border border-${color}-400/30 bg-${color}-400/10 hover:border-${color}-400/50 transition-all duration-300`}>
+                                <div className="flex justify-between mb-2">
+                                  <span className="font-medium text-gray-300 capitalize">{nutrient}</span>
+                                </div>
+                                <div className={`text-2xl font-bold mb-3 text-${color}-400`}>{value}</div>
+                                <div className="h-2 bg-gray-700 rounded-full">
+                                  <div className={`h-2 rounded-full bg-${color}-400 ${width} transition-all duration-500`}></div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Profitable Crops */}
                     {soilAnalysis.suitableCrops && (
@@ -627,7 +626,7 @@ const SoilAnalysis = () => {
                               waterRequirement: 'Medium',
                               soilMatch: 'Well-suited for this soil type'
                             } : crop;
-                            
+
                             return (
                               <div key={index} className="p-6 bg-gray-800/50 rounded-xl border border-green-400/30 hover:border-green-400/50 transition-all duration-300">
                                 <div className="flex justify-between items-start mb-4">
@@ -643,7 +642,7 @@ const SoilAnalysis = () => {
                                     {cropData.profitLevel}
                                   </span>
                                 </div>
-                                
+
                                 {cropData.soilMatch && (
                                   <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                                     <div className="text-sm text-blue-300">
@@ -651,7 +650,7 @@ const SoilAnalysis = () => {
                                     </div>
                                   </div>
                                 )}
-                                
+
                                 <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                                   <div>
                                     <span className="text-gray-300">Season:</span>
@@ -672,14 +671,13 @@ const SoilAnalysis = () => {
                                   {cropData.waterRequirement && (
                                     <div>
                                       <span className="text-gray-300">Water Need:</span>
-                                      <div className={`font-medium ${
-                                        cropData.waterRequirement === 'Low' ? 'text-green-400' :
+                                      <div className={`font-medium ${cropData.waterRequirement === 'Low' ? 'text-green-400' :
                                         cropData.waterRequirement === 'Medium' ? 'text-yellow-400' : 'text-red-400'
-                                      }`}>{cropData.waterRequirement}</div>
+                                        }`}>{cropData.waterRequirement}</div>
                                     </div>
                                   )}
                                 </div>
-                                
+
                                 <div className="flex justify-between">
                                   <div>
                                     <span className="text-gray-300">Demand:</span>
@@ -687,10 +685,9 @@ const SoilAnalysis = () => {
                                   </div>
                                   <div>
                                     <span className="text-gray-300">Risk:</span>
-                                    <span className={`ml-1 font-medium ${
-                                      cropData.riskLevel === 'Low' ? 'text-green-400' :
+                                    <span className={`ml-1 font-medium ${cropData.riskLevel === 'Low' ? 'text-green-400' :
                                       cropData.riskLevel === 'Medium' ? 'text-yellow-400' : 'text-red-400'
-                                    }`}>{cropData.riskLevel}</span>
+                                      }`}>{cropData.riskLevel}</span>
                                   </div>
                                 </div>
                               </div>

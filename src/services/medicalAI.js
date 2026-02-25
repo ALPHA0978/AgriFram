@@ -1,7 +1,11 @@
 import { BaseAI } from './baseAI.js'
+import { FALLBACK_DISCLAIMER } from './huggingFaceService.js'
 
 export class MedicalAI extends BaseAI {
   static async comprehensiveDiagnosis(patientData) {
+    const analysisId = `[DIAGNOSIS-${Date.now()}]`;
+    console.log(`${analysisId} 🏥 Starting comprehensive diagnosis via minimax-m2:cloud...`);
+    const startTime = Date.now();
     try {
       const systemPrompt = `You are an advanced medical AI. Return ONLY valid JSON:
 {
@@ -34,15 +38,27 @@ export class MedicalAI extends BaseAI {
 }`
 
       const response = await this.callAPI(`Patient: Age ${patientData.age}, Gender ${patientData.gender}, Symptoms: ${patientData.symptoms}, Duration: ${patientData.duration}, Medical History: ${patientData.medicalHistory}, Current Medications: ${patientData.medications}, Vital Signs: ${patientData.vitals}`, systemPrompt)
-      
-      return this.parseJSON(response) || this.getDefaultDiagnosis()
+
+      const parsed = this.parseJSON(response);
+      if (parsed) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`${analysisId} ✅ Diagnosis complete in ${elapsed}s - ${parsed.primaryDiagnosis || 'done'}`);
+        return parsed;
+      }
+      console.warn(`${analysisId} ⚠️ Using fallback diagnosis data. ${FALLBACK_DISCLAIMER}`);
+      return this.getDefaultDiagnosis();
     } catch (error) {
-      console.error('Comprehensive diagnosis error:', error)
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.error(`${analysisId} ❌ Diagnosis error after ${elapsed}s:`, error.message);
+      console.warn(`${analysisId} ⚠️ Using fallback diagnosis data. ${FALLBACK_DISCLAIMER}`);
       return this.getDefaultDiagnosis()
     }
   }
 
   static async analyzeVitals(vitalsData) {
+    const analysisId = `[VITALS-${Date.now()}]`;
+    console.log(`${analysisId} ❤️ Analyzing vitals via minimax-m2:cloud... BP:${vitalsData.bloodPressure}, HR:${vitalsData.heartRate}`);
+    const startTime = Date.now();
     try {
       const systemPrompt = `Advanced medical vitals AI. Return ONLY JSON:
 {
@@ -68,14 +84,27 @@ export class MedicalAI extends BaseAI {
 }`
 
       const response = await this.callAPI(`Comprehensive vitals analysis: BP ${vitalsData.bloodPressure}, HR ${vitalsData.heartRate}, Temp ${vitalsData.temperature}°F, SpO2 ${vitalsData.oxygenSaturation}%, RR ${vitalsData.respiratoryRate}. Provide detailed medical assessment with predictions.`, systemPrompt)
-      
-      return this.parseJSON(response) || this.getDefaultVitals()
+
+      const parsed = this.parseJSON(response);
+      if (parsed) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`${analysisId} ✅ Vitals analysis complete in ${elapsed}s - Status: ${parsed.overallStatus}`);
+        return parsed;
+      }
+      console.warn(`${analysisId} ⚠️ Using fallback vitals data. ${FALLBACK_DISCLAIMER}`);
+      return this.getDefaultVitals();
     } catch (error) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.error(`${analysisId} ❌ Vitals analysis error after ${elapsed}s:`, error.message);
+      console.warn(`${analysisId} ⚠️ Using fallback vitals data. ${FALLBACK_DISCLAIMER}`);
       return this.getDefaultVitals()
     }
   }
 
   static async predictHealthOutcomes(patientData, vitalsHistory) {
+    const analysisId = `[PREDICT-${Date.now()}]`;
+    console.log(`${analysisId} 🔮 Predicting health outcomes via minimax-m2:cloud...`);
+    const startTime = Date.now();
     try {
       const systemPrompt = `Medical prediction AI. Return ONLY JSON:
 {
@@ -102,16 +131,29 @@ export class MedicalAI extends BaseAI {
 }`
 
       const historyText = vitalsHistory ? vitalsHistory.map(h => `${h.date}: BP ${h.bp}, HR ${h.hr}`).join(', ') : 'No history'
-      
+
       const response = await this.callAPI(`Patient: Age ${patientData.age}, Gender ${patientData.gender}, Medical History: ${patientData.medicalHistory}, Current Symptoms: ${patientData.symptoms}, Vitals History: ${historyText}. Predict health outcomes and risks.`, systemPrompt)
-      
-      return this.parseJSON(response) || this.getDefaultPredictions()
+
+      const parsed = this.parseJSON(response);
+      if (parsed) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`${analysisId} ✅ Health outcomes predicted in ${elapsed}s`);
+        return parsed;
+      }
+      console.warn(`${analysisId} ⚠️ Using fallback predictions. ${FALLBACK_DISCLAIMER}`);
+      return this.getDefaultPredictions();
     } catch (error) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.error(`${analysisId} ❌ Health prediction error after ${elapsed}s:`, error.message);
+      console.warn(`${analysisId} ⚠️ Using fallback predictions. ${FALLBACK_DISCLAIMER}`);
       return this.getDefaultPredictions()
     }
   }
 
   static async analyzeHealthTrends(healthData) {
+    const analysisId = `[TRENDS-${Date.now()}]`;
+    console.log(`${analysisId} 📊 Analyzing health trends via minimax-m2:cloud...`);
+    const startTime = Date.now();
     try {
       const systemPrompt = `Health trends AI. Return ONLY JSON:
 {
@@ -133,21 +175,34 @@ export class MedicalAI extends BaseAI {
 }`
 
       const response = await this.callAPI(`Analyze health trends: ${JSON.stringify(healthData)}`, systemPrompt)
-      
-      return this.parseJSON(response) || this.getDefaultTrends()
+
+      const parsed = this.parseJSON(response);
+      if (parsed) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`${analysisId} ✅ Health trends analyzed in ${elapsed}s`);
+        return parsed;
+      }
+      console.warn(`${analysisId} ⚠️ Using fallback trends. ${FALLBACK_DISCLAIMER}`);
+      return this.getDefaultTrends();
     } catch (error) {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      console.error(`${analysisId} ❌ Health trends error after ${elapsed}s:`, error.message);
+      console.warn(`${analysisId} ⚠️ Using fallback trends. ${FALLBACK_DISCLAIMER}`);
       return this.getDefaultTrends()
     }
   }
 
   static getDefaultDiagnosis() {
+    console.warn('⚠️ FALLBACK DATA IN USE:', FALLBACK_DISCLAIMER);
     return {
+      _isFallback: true,
+      _fallbackDisclaimer: FALLBACK_DISCLAIMER,
       primaryDiagnosis: 'Requires clinical evaluation',
       confidence: 70,
       urgency: 'medium',
       differentialDiagnosis: [
-        {condition: 'Viral infection', probability: '40%', reasoning: 'Common symptoms match'},
-        {condition: 'Bacterial infection', probability: '30%', reasoning: 'Symptom severity'}
+        { condition: 'Viral infection', probability: '40%', reasoning: 'Common symptoms match' },
+        { condition: 'Bacterial infection', probability: '30%', reasoning: 'Symptom severity' }
       ],
       symptoms: {
         reported: ['Fever', 'Fatigue'],
@@ -155,12 +210,12 @@ export class MedicalAI extends BaseAI {
         redFlags: ['Difficulty breathing', 'Chest pain']
       },
       investigations: [
-        {test: 'Complete Blood Count', priority: 'high', reason: 'Check for infection markers'},
-        {test: 'Chest X-ray', priority: 'medium', reason: 'Rule out pneumonia'}
+        { test: 'Complete Blood Count', priority: 'high', reason: 'Check for infection markers' },
+        { test: 'Chest X-ray', priority: 'medium', reason: 'Rule out pneumonia' }
       ],
       treatment: {
         immediate: ['Rest', 'Hydration', 'Fever management'],
-        medications: [{name: 'Paracetamol', dosage: '500mg', duration: '3 times daily'}],
+        medications: [{ name: 'Paracetamol', dosage: '500mg', duration: '3 times daily' }],
         lifestyle: ['Adequate rest', 'Increase fluid intake']
       },
       followUp: {
@@ -174,14 +229,17 @@ export class MedicalAI extends BaseAI {
   }
 
   static getDefaultVitals() {
+    console.warn('⚠️ FALLBACK DATA IN USE:', FALLBACK_DISCLAIMER);
     return {
+      _isFallback: true,
+      _fallbackDisclaimer: FALLBACK_DISCLAIMER,
       overallStatus: 'normal',
       alerts: [],
       vitalsAnalysis: {
-        bloodPressure: {status: 'normal', risk: 'low', category: 'normal'},
-        heartRate: {status: 'normal', concern: 'none', rhythm: 'regular'},
-        temperature: {status: 'normal', action: 'continue monitoring'},
-        oxygenSaturation: {status: 'normal', urgency: 'none'}
+        bloodPressure: { status: 'normal', risk: 'low', category: 'normal' },
+        heartRate: { status: 'normal', concern: 'none', rhythm: 'regular' },
+        temperature: { status: 'normal', action: 'continue monitoring' },
+        oxygenSaturation: { status: 'normal', urgency: 'none' }
       },
       predictions: {
         riskFactors: ['No immediate risks identified'],
@@ -198,11 +256,14 @@ export class MedicalAI extends BaseAI {
   }
 
   static getDefaultPredictions() {
+    console.warn('⚠️ FALLBACK DATA IN USE:', FALLBACK_DISCLAIMER);
     return {
+      _isFallback: true,
+      _fallbackDisclaimer: FALLBACK_DISCLAIMER,
       riskAssessment: {
-        cardiovascular: {risk: 'low', factors: ['No major risk factors'], timeline: 'Low risk in next 5 years'},
-        diabetes: {risk: 'low', indicators: ['Normal glucose indicators'], prevention: ['Maintain healthy diet', 'Regular exercise']},
-        hypertension: {risk: 'low', progression: 'Stable blood pressure expected', management: ['Continue monitoring']}
+        cardiovascular: { risk: 'low', factors: ['No major risk factors'], timeline: 'Low risk in next 5 years' },
+        diabetes: { risk: 'low', indicators: ['Normal glucose indicators'], prevention: ['Maintain healthy diet', 'Regular exercise'] },
+        hypertension: { risk: 'low', progression: 'Stable blood pressure expected', management: ['Continue monitoring'] }
       },
       healthTrajectory: {
         shortTerm: 'Stable health expected in next 3 months',
@@ -223,16 +284,19 @@ export class MedicalAI extends BaseAI {
   }
 
   static getDefaultTrends() {
+    console.warn('⚠️ FALLBACK DATA IN USE:', FALLBACK_DISCLAIMER);
     return {
+      _isFallback: true,
+      _fallbackDisclaimer: FALLBACK_DISCLAIMER,
       trendAnalysis: {
-        vitals: {direction: 'stable', confidence: '85%', factors: ['Consistent readings']},
-        symptoms: {progression: 'stable', pattern: 'No concerning patterns', triggers: ['None identified']},
-        overall: {health: 'good', trajectory: 'stable', outlook: 'Positive'}
+        vitals: { direction: 'stable', confidence: '85%', factors: ['Consistent readings'] },
+        symptoms: { progression: 'stable', pattern: 'No concerning patterns', triggers: ['None identified'] },
+        overall: { health: 'good', trajectory: 'stable', outlook: 'Positive' }
       },
       predictions: {
         nextWeek: 'Continued stable health expected',
         nextMonth: 'Maintaining current health status',
-        riskEvents: [{event: 'No significant risks identified', probability: 'Low', timeframe: 'Not applicable'}]
+        riskEvents: [{ event: 'No significant risks identified', probability: 'Low', timeframe: 'Not applicable' }]
       },
       recommendations: {
         immediate: ['Continue current health practices'],

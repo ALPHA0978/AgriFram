@@ -1,97 +1,123 @@
+// ============================================================
+// BaseAI - All-Ollama Cloud Multi-Agent Architecture
+// Primary:  Ollama Cloud (ollama.com/api) — proxied via Vite
+// ============================================================
+
+const OLLAMA_API_KEY = '053ac592a8724bd789d00ffea8d0a709.z_zq5Z_BThFPI6dkZbOBB1VQ';
+
 export class BaseAI {
   static sanitizeInput(input) {
     if (typeof input !== 'string') return '';
     return input.replace(/<script[^>]*>.*?<\/script>/gi, '')
-                .replace(/<[^>]*>/g, '')
-                .trim()
-                .substring(0, 10000); // Limit input length
+      .replace(/<[^>]*>/g, '')
+      .trim()
+      .substring(0, 10000);
   }
 
-  static async callAPI(prompt, systemPrompt = '') {
-    const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-    
-    if (!API_KEY) {
-      throw new Error('OpenRouter API key not found');
-    }
+  // Allow passing the specific model for the multi-agent swarm
+  static async callAPI(prompt, systemPrompt = '', model = 'deepseek-v3.1:671b-cloud', images = null) {
+    const TRUTHFUL_PROMPT = "You are a concise, accurate agricultural assistant. DO NOT hallucinate. Keep output focused and strictly follow formats.";
+    const combinedSystemPrompt = `${TRUTHFUL_PROMPT} ${systemPrompt}`.trim();
 
-    // Sanitize inputs
     const sanitizedPrompt = this.sanitizeInput(prompt);
-    const sanitizedSystemPrompt = this.sanitizeInput(systemPrompt);
+    const sanitizedSystemPrompt = this.sanitizeInput(combinedSystemPrompt);
 
     if (!sanitizedPrompt) {
       throw new Error('Invalid or empty prompt provided');
     }
 
+    const callId = `[AI-${model.split(':')[0]}-${Date.now().toString().slice(-4)}]`;
+    console.log(`${callId} 🚀 Agent ${model} starting...`);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      controller.abort();
+      console.warn(`${callId} ⏱️ Request timed out after 150s`);
+    }, 150000);
+
     try {
       const messages = [
         ...(sanitizedSystemPrompt ? [{ role: "system", content: sanitizedSystemPrompt }] : []),
-        { role: "user", content: sanitizedPrompt }
+        {
+          role: "user",
+          content: sanitizedPrompt,
+          ...(images ? { images } : {}) // Pass base64 image array if provided
+        }
       ];
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const res = await fetch('/api/ollama/chat', {
         method: 'POST',
+        signal: controller.signal,
         headers: {
-          'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest', // CSRF protection
+          'Authorization': `Bearer ${OLLAMA_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "nvidia/nemotron-nano-9b-v2:free",
+          model: model,
           messages: messages,
-          max_tokens: 3000,
-          temperature: 0.2
+          stream: false,
+          options: { temperature: 0.1, num_predict: 2000 }
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`API call failed: ${response.status}`);
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => res.statusText);
+        throw new Error(`Ollama API error: ${res.status} - ${errText}`);
       }
 
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
+      const data = await res.json();
+
+      // Handle raw content, stripping <think> tags if Minimax or DeepSeek models are used
+      let content =
+        data?.message?.content ||
+        data?.message?.thinking ||
+        data?.response ||
+        (typeof data === 'string' ? data : null);
+
       if (!content) {
-        throw new Error('Empty response from AI model');
+        throw new Error('No content in Ollama Cloud response');
       }
+
+      console.log(`${callId} ✅ Agent finished (${content.length} chars)`);
       return content;
     } catch (error) {
-      console.error('BaseAI API Error:', error);
+      clearTimeout(timer);
+      console.error(`${callId} ❌ Agent Failed:`, error.message);
       throw error;
     }
   }
 
   static parseJSON(response) {
+    if (!response || typeof response !== 'string') return null;
+
+    let cleaned = response.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    cleaned = cleaned.replace(/<\/think>/gi, '').trim();
+
     try {
-      return JSON.parse(response);
-    } catch (error) {
+      return JSON.parse(cleaned);
+    } catch {
       try {
-        // Extract JSON from code blocks
-        const codeBlockMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (codeBlockMatch) {
-          return JSON.parse(codeBlockMatch[1].trim());
+        const block = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (block) return JSON.parse(block[1].trim());
+
+        // Extreme fallback: find the first { and last }
+        const firstParen = cleaned.indexOf('{');
+        const lastParen = cleaned.lastIndexOf('}');
+        if (firstParen !== -1 && lastParen !== -1 && lastParen > firstParen) {
+          const rawJson = cleaned.substring(firstParen, lastParen + 1);
+          return JSON.parse(rawJson);
         }
-        
-        // Find complete JSON objects with proper nesting
-        const jsonMatches = response.match(/\{(?:[^{}]|\{[^{}]*\})*\}/g);
-        if (jsonMatches) {
-          for (let i = jsonMatches.length - 1; i >= 0; i--) {
-            try {
-              const parsed = JSON.parse(jsonMatches[i]);
-              if (parsed && typeof parsed === 'object') {
-                return parsed;
-              }
-            } catch (e) { continue; }
-          }
-        }
-        
-        // Look for JSON after specific keywords
-        const afterJsonMatch = response.match(/(?:json|result|output)\s*:?\s*(\{[\s\S]*?\})/);
-        if (afterJsonMatch) {
-          return JSON.parse(afterJsonMatch[1]);
-        }
-        
+
+        const obj = cleaned.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+        if (obj) return JSON.parse(obj[1]);
+
         return null;
-      } catch (parseError) {
-        console.warn('JSON parsing failed, using fallback data:', parseError.message);
+      } catch (e) {
+        console.warn('JSON parsing failed:', e.message);
+        console.log('--- RAW RESPONSE FOR DEBUGGING ---');
+        console.log(response);
         return null;
       }
     }

@@ -1,5 +1,4 @@
-const ALPHA_VANTAGE_API_URL = 'https://www.alphavantage.co/query';
-const API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_API_KEY;
+import { BaseAI } from './baseAI.js';
 
 export class AlphaVantageService {
   static validateSymbol(symbol) {
@@ -18,61 +17,72 @@ export class AlphaVantageService {
     }
 
     const sanitizedSymbol = this.sanitizeInput(symbol);
-    
+
     try {
-      const url = new URL(ALPHA_VANTAGE_API_URL);
-      url.searchParams.set('function', 'GLOBAL_QUOTE');
-      url.searchParams.set('symbol', sanitizedSymbol);
-      url.searchParams.set('apikey', API_KEY);
-      
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-      const data = await response.json();
-      return data['Global Quote'];
+      const systemPrompt = `You are a financial data simulator specializing in agricultural commodities. Generate a realistic JSON response matching the Alpha Vantage 'Global Quote' format. Return ONLY valid JSON:
+{
+  "Global Quote": {
+    "01. symbol": "${sanitizedSymbol}",
+    "02. open": "current_open_price",
+    "03. high": "daily_high",
+    "04. low": "daily_low",
+    "05. price": "current_price",
+    "06. volume": "trading_volume",
+    "07. latest trading day": "${new Date().toISOString().split('T')[0]}",
+    "08. previous close": "prev_close",
+    "09. change": "price_change",
+    "10. change percent": "percentage_change%"
+  }
+}`;
+      const response = await BaseAI.callAPI(`Generate current market data for agricultural commodity symbol: ${sanitizedSymbol}`, systemPrompt);
+      const data = BaseAI.parseJSON(response);
+      return data?.['Global Quote'] || null;
     } catch (error) {
-      console.error('Alpha Vantage API error:', error);
+      console.error('AI Price simulation error:', error);
       return null;
     }
   }
 
   static async getTopGainersLosers() {
     try {
-      const url = new URL(ALPHA_VANTAGE_API_URL);
-      url.searchParams.set('function', 'TOP_GAINERS_LOSERS');
-      url.searchParams.set('apikey', API_KEY);
-      
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-      const data = await response.json();
-      return data;
+      const systemPrompt = `You are a market trend simulator. Generate a realistic JSON response for top agricultural gainers and losers. Return ONLY valid JSON:
+{
+  "top_gainers": [
+    {"symbol": "CORN", "price": "4.50", "change_amount": "0.15", "change_percentage": "3.4%"},
+    {"symbol": "SOYB", "price": "12.80", "change_amount": "0.20", "change_percentage": "1.6%"}
+  ],
+  "top_losers": [
+    {"symbol": "WEAT", "price": "6.20", "change_amount": "-0.10", "change_percentage": "-1.6%"}
+  ]
+}`;
+      const response = await BaseAI.callAPI("Generate current top agricultural gainers and losers in the market.", systemPrompt);
+      return BaseAI.parseJSON(response);
     } catch (error) {
-      console.error('Alpha Vantage API error:', error);
+      console.error('AI Market trends simulation error:', error);
       return null;
     }
   }
 
   static async getMarketNews(tickers = '') {
     const sanitizedTickers = this.sanitizeInput(tickers);
-    
+
     try {
-      const url = new URL(ALPHA_VANTAGE_API_URL);
-      url.searchParams.set('function', 'NEWS_SENTIMENT');
-      url.searchParams.set('tickers', sanitizedTickers);
-      url.searchParams.set('limit', '10');
-      url.searchParams.set('apikey', API_KEY);
-      
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-      const data = await response.json();
-      return data;
+      const systemPrompt = `You are an agricultural news simulator. Generate a realistic 'NEWS_SENTIMENT' JSON response. Return ONLY valid JSON:
+{
+  "feed": [
+    {
+      "title": "Global supply outlook for ${sanitizedTickers}",
+      "url": "https://example.com/news/1",
+      "summary": "AI simulated news about market trends in ${sanitizedTickers}.",
+      "overall_sentiment_score": 0.25,
+      "overall_sentiment_label": "Somewhat Bullish"
+    }
+  ]
+}`;
+      const response = await BaseAI.callAPI(`Generate agricultural market news for: ${sanitizedTickers}`, systemPrompt);
+      return BaseAI.parseJSON(response);
     } catch (error) {
-      console.error('Alpha Vantage API error:', error);
+      console.error('AI News simulation error:', error);
       return null;
     }
   }
@@ -81,7 +91,7 @@ export class AlphaVantageService {
     try {
       const marketData = await this.getTopGainersLosers();
       const newsData = await this.getMarketNews('CORN,SOYB,WEAT');
-      
+
       const trends = {
         supplyShortages: [],
         priceRising: [],
@@ -96,15 +106,17 @@ export class AlphaVantageService {
       }
 
       if (newsData?.feed) {
-        const positiveNews = newsData.feed.filter(article => 
+        const positiveNews = newsData.feed.filter(article =>
           article.overall_sentiment_score > 0.1
         ).length;
         const totalNews = newsData.feed.length;
-        
-        if (positiveNews / totalNews > 0.6) {
-          trends.marketSentiment = 'positive';
-        } else if (positiveNews / totalNews < 0.4) {
-          trends.marketSentiment = 'negative';
+
+        if (totalNews > 0) {
+          if (positiveNews / totalNews > 0.6) {
+            trends.marketSentiment = 'positive';
+          } else if (positiveNews / totalNews < 0.4) {
+            trends.marketSentiment = 'negative';
+          }
         }
       }
 
@@ -128,15 +140,16 @@ export class AlphaVantageService {
   static async getCropPriceProjections(crops) {
     try {
       const projections = [];
-      
-      for (const crop of crops.slice(0, 3)) {
+      const limitedCrops = crops.slice(0, 3);
+
+      for (const crop of limitedCrops) {
         const symbol = this.mapCropToSymbol(crop);
         const priceData = await this.getCommodityPrice(symbol);
-        
+
         if (priceData) {
-          const currentPrice = parseFloat(priceData['05. price']);
-          const changePercent = parseFloat(priceData['10. change percent'].replace('%', ''));
-          
+          const currentPrice = parseFloat(priceData['05. price']) || 0;
+          const changePercent = parseFloat(priceData['10. change percent']?.replace('%', '')) || 0;
+
           projections.push({
             crop: crop,
             currentPrice: `$${currentPrice.toFixed(2)}`,
@@ -146,7 +159,7 @@ export class AlphaVantageService {
           });
         }
       }
-      
+
       return projections;
     } catch (error) {
       console.error('Price projection error:', error);
@@ -165,7 +178,7 @@ export class AlphaVantageService {
       'Rice': 'CORN',
       'Cotton': 'SOYB'
     };
-    
+
     return mapping[crop] || 'CORN';
   }
 

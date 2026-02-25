@@ -34,14 +34,14 @@ const MarketIntel = () => {
       // Step 1: Analyze market conditions using FarmerAI
       console.log('Step 1: Analyzing market conditions...');
       const marketConditions = await FarmerAI.analyzeMarketConditions(marketData.location, marketData.season, marketData.soilType);
-      
+
       // Step 2: Get AI crop suggestions based on market analysis
       console.log('Step 2: Getting AI crop suggestions based on market...');
       const cropSuggestions = await FarmerAI.suggestCropsBasedOnMarket(marketConditions, marketData.location, marketData.soilType, marketData.budget, marketData.season, marketData.farmSize, marketData.waterAvailability);
-      
+
       const cropNames = cropSuggestions.map(c => c.name);
       console.log('AI suggested crops:', cropNames);
-      
+
       // Step 3: Skip AI detailed analysis, use market data directly
       console.log('Step 3: Processing crop data...');
       const cropDetails = cropSuggestions.map((crop, i) => ({
@@ -53,27 +53,27 @@ const MarketIntel = () => {
         corporateBuyers: ['Market buyers'],
         nutritionImpact: 'High nutrition'
       }));
-      
+
       // Step 4: Combine Alpha Vantage real market data with FarmerAI analysis
       console.log('Step 4: Getting real market data and AI analysis...');
-      
+
       // Get real market data from Alpha Vantage
       const marketTrends = await AlphaVantageService.analyzeMarketTrends(cropNames);
       const priceProjections = await AlphaVantageService.getCropPriceProjections(cropNames);
-      
+
       // Create timeline first
       const timeline = cropNames.map((crop, i) => ({
         crop: crop,
         days: i === 0 ? '90-110' : i === 1 ? '150-180' : '60-90'
       }));
-      
+
       // Use FarmerAI to analyze real market data and get corporate procurement insights
       let corporateAnalysis, regionalGaps, valueProjections;
       try {
         corporateAnalysis = await FarmerAI.analyzeCorporateProcurement(cropNames, marketData.location);
         regionalGaps = await FarmerAI.analyzeRegionalGaps(cropNames, marketData.location);
         valueProjections = await FarmerAI.getFutureValueProjections(cropNames, timeline, marketData.location);
-        
+
         console.log('Corporate Analysis:', corporateAnalysis);
         console.log('Regional Gaps:', regionalGaps);
         console.log('Value Projections:', valueProjections);
@@ -86,30 +86,30 @@ const MarketIntel = () => {
           increasePercentage: marketTrends.marketSentiment === 'positive' ? '+30%' : '+15%',
           reason: 'Market demand increase'
         }));
-        
+
         regionalGaps = cropNames.map((crop, i) => ({
           region: ['North India', 'South India', 'West India'][i % 3],
           shortage: crop,
           demandLevel: 'High',
           opportunity: 'Supply gap opportunity'
         }));
-        
+
         valueProjections = cropNames.map((crop, i) => ({
           crop: crop,
           futureValueIncrease: priceProjections.find(p => p.crop === crop)?.futureProjection || '+25%',
           reason: 'Market growth potential'
         }));
       }
-      
+
       // Create final crop details combining real market data with AI analysis
       const finalCropDetails = cropSuggestions.map((crop, index) => {
         const priceData = priceProjections.find(p => p.crop === crop.name) || {};
         const isRising = priceData.trend === 'rising';
         const marketDemand = marketTrends.priceRising.includes(crop.name) ? 'Very High' : 'High';
-        
+
         return {
           crop: crop.name,
-          investment: index === 0 ? '₹12000' : index === 1 ? '₹15000' : '₹25000',
+          investment: crop.investment || (index === 0 ? '₹12000' : index === 1 ? '₹15000' : '₹25000'),
           profit: isRising ? '70-80%' : '60-70%',
           risk: marketTrends.marketSentiment === 'positive' ? 'Low' : 'Medium',
           harvestDays: index === 0 ? '90-110' : index === 1 ? '150-180' : '60-90',
@@ -118,7 +118,7 @@ const MarketIntel = () => {
           nutritionImpact: 'High nutrition value'
         };
       });
-      
+
       const prices = priceProjections.length > 0 ? priceProjections.map(p => ({
         crop: p.crop,
         price: p.currentPrice,
@@ -128,7 +128,7 @@ const MarketIntel = () => {
         price: '₹3000',
         increase: '+20%'
       }));
-      
+
       setMarketAnalysis({
         cropSuggestions: cropSuggestions,
         growthTimeline: timeline,
@@ -161,7 +161,7 @@ const MarketIntel = () => {
             crop: crop,
             nutrition: 'High nutrition content',
             impact: `Address nutritional needs through ${crop} cultivation`
-          })).concat([{crop: 'Fortified Rice', nutrition: 'Iron, Vitamin B12 enriched', impact: 'Reduce anemia in children'}]),
+          })).concat([{ crop: 'Fortified Rice', nutrition: 'Iron, Vitamin B12 enriched', impact: 'Reduce anemia in children' }]),
           foodSecurity: {
             strategy: 'Increase production of nutrition-dense crops to combat hunger and malnutrition',
             targets: ['Double farmer income', 'Reduce malnutrition by 50%', 'Achieve food self-sufficiency'],
@@ -190,7 +190,7 @@ const MarketIntel = () => {
           longTerm: 'Establish sustainable farming system with nutrition and market focus'
         }
       });
-      
+
     } catch (error) {
       console.error('Market analysis error:', error);
       setMarketAnalysis({
@@ -213,7 +213,7 @@ const MarketIntel = () => {
   const processDocument = async (file) => {
     setIsProcessingDoc(true);
     setProcessingProgress(0);
-    
+
     const progressInterval = setInterval(() => {
       setProcessingProgress(prev => {
         if (prev >= 90) return prev;
@@ -224,7 +224,7 @@ const MarketIntel = () => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const fileData = e.target.result;
-        
+
         const systemPrompt = `Extract farm and market data from this document. Check for ALL these fields and return ONLY valid JSON:
 {
   "extractedData": {
@@ -244,19 +244,19 @@ const MarketIntel = () => {
     "message": "Document analysis result"
   }
 }`;
-        
+
         const extractedData = await BaseAI.callAPI(
           `Analyze this farm/market document and extract relevant information. Document content: ${fileData}`,
           systemPrompt
         );
-        
+
         const parsed = BaseAI.parseJSON(extractedData);
         if (parsed && parsed.extractedData && parsed.validation) {
           const validData = Object.fromEntries(
             Object.entries(parsed.extractedData).filter(([_, value]) => value && value !== "null" && value !== "")
           );
           setMarketData(prev => ({ ...prev, ...validData }));
-          
+
           setDocValidation({
             isValid: parsed.validation.isComplete,
             message: parsed.validation.message,
@@ -300,71 +300,78 @@ const MarketIntel = () => {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false; // important for accumulation
     recognition.lang = 'en-US';
-    
+
     recognition.onstart = () => {
       setIsListening(true);
-      setVoiceTranscript('');
+      if (!voiceTranscript) setVoiceTranscript('');
     };
-    
+
     recognition.onresult = (event) => {
       let transcript = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
       }
-      setVoiceTranscript(transcript);
+      setVoiceTranscript(prev => (prev + ' ' + transcript).trim());
     };
-    
+
     recognition.onend = () => {
-      setIsListening(false);
-      if (voiceTranscript.trim()) {
-        processVoiceInput(voiceTranscript);
+      if (recognitionRef.current) {
+        try { recognition.start(); } catch (e) { } // Auto-restart on pauses
+      } else {
+        setIsListening(false);
       }
     };
-    
+
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
       alert('Voice recognition error. Please try again.');
     };
-    
+
     recognitionRef.current = recognition;
     recognition.start();
   };
 
   const stopVoiceInput = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+    const rec = recognitionRef.current;
+    if (rec) {
+      recognitionRef.current = null;
+      rec.stop();
     }
     setIsListening(false);
+    if (voiceTranscript.trim()) {
+      processVoiceInput(voiceTranscript);
+    }
   };
 
   const processVoiceInput = async (transcript) => {
     try {
-      const systemPrompt = `Extract farm and market data from this voice input. Return ONLY valid JSON:
+      const systemPrompt = `Extract farm and market data from this voice input. Return ONLY valid JSON. If a value is NOT explicitly mentioned in the text, you MUST set it to null.
 {
-  "location": "farm location if mentioned",
-  "farmSize": "farm size if mentioned",
-  "budget": "budget amount if mentioned",
-  "season": "season if mentioned (Kharif/Rabi/Zaid)",
-  "soilType": "soil type if mentioned",
-  "waterAvailability": "water source if mentioned"
+  "location": "farm location or null",
+  "farmSize": "farm size or null",
+  "budget": "budget amount or null",
+  "season": "season (Kharif/Rabi/Zaid) or null",
+  "soilType": "soil type or null",
+  "waterAvailability": "water source or null"
 }`;
-      
+
       const extractedData = await BaseAI.callAPI(
         `Extract market information from this voice input: "${transcript}"`,
-        systemPrompt
+        systemPrompt,
+        'qwen3-coder:480b-cloud'
       );
-      
+
       const parsed = BaseAI.parseJSON(extractedData);
       if (parsed) {
         setMarketData(prev => ({
           ...prev,
           ...Object.fromEntries(
-            Object.entries(parsed).filter(([_, value]) => value && value !== "")
+            Object.entries(parsed).filter(([_, value]) => value && value !== "null")
           )
         }));
       }
@@ -376,7 +383,7 @@ const MarketIntel = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white font-inter relative overflow-hidden">
-      
+
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
@@ -389,7 +396,7 @@ const MarketIntel = () => {
           <div className="text-2xl font-black text-white tracking-tight">
             <span className="text-green-400">AgriFarm</span>AI
           </div>
-          <button 
+          <button
             onClick={() => navigate('/farming-tool')}
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
           >
@@ -400,7 +407,7 @@ const MarketIntel = () => {
       </nav>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-24">
-        
+
         {/* Title Section */}
         <div className="text-center mb-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-green-600 drop-shadow-lg">
@@ -424,7 +431,7 @@ const MarketIntel = () => {
                 <input
                   type="text"
                   value={marketData.location}
-                  onChange={(e) => setMarketData(prev => ({...prev, location: e.target.value}))}
+                  onChange={(e) => setMarketData(prev => ({ ...prev, location: e.target.value }))}
                   placeholder="e.g., Punjab, Maharashtra, Karnataka"
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                 />
@@ -434,7 +441,7 @@ const MarketIntel = () => {
                 <input
                   type="text"
                   value={marketData.farmSize}
-                  onChange={(e) => setMarketData(prev => ({...prev, farmSize: e.target.value}))}
+                  onChange={(e) => setMarketData(prev => ({ ...prev, farmSize: e.target.value }))}
                   placeholder="5"
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                 />
@@ -444,7 +451,7 @@ const MarketIntel = () => {
                 <input
                   type="text"
                   value={marketData.budget}
-                  onChange={(e) => setMarketData(prev => ({...prev, budget: e.target.value}))}
+                  onChange={(e) => setMarketData(prev => ({ ...prev, budget: e.target.value }))}
                   placeholder="50000"
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
                 />
@@ -453,7 +460,7 @@ const MarketIntel = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Current Season</label>
                 <CustomDropdown
                   value={marketData.season}
-                  onChange={(value) => setMarketData(prev => ({...prev, season: value}))}
+                  onChange={(value) => setMarketData(prev => ({ ...prev, season: value }))}
                   placeholder="Select Season"
                   onToggle={setDropdownOpen}
                   options={[
@@ -467,7 +474,7 @@ const MarketIntel = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Soil Type</label>
                 <CustomDropdown
                   value={marketData.soilType}
-                  onChange={(value) => setMarketData(prev => ({...prev, soilType: value}))}
+                  onChange={(value) => setMarketData(prev => ({ ...prev, soilType: value }))}
                   placeholder="Select Soil Type"
                   onToggle={setDropdownOpen}
                   options={[
@@ -484,7 +491,7 @@ const MarketIntel = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Water Availability</label>
                 <CustomDropdown
                   value={marketData.waterAvailability}
-                  onChange={(value) => setMarketData(prev => ({...prev, waterAvailability: value}))}
+                  onChange={(value) => setMarketData(prev => ({ ...prev, waterAvailability: value }))}
                   placeholder="Select Water Source"
                   onToggle={setDropdownOpen}
                   options={[
@@ -518,11 +525,10 @@ const MarketIntel = () => {
               <button
                 onClick={isListening ? stopVoiceInput : startVoiceInput}
                 disabled={isAnalyzing || isProcessingDoc}
-                className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${
-                  isListening 
-                    ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-                    : 'bg-green-500 hover:bg-green-600'
-                } text-white disabled:bg-gray-600 disabled:text-gray-400`}
+                className={`flex items-center justify-center space-x-2 py-4 rounded-lg transition-all duration-300 font-semibold ${isListening
+                  ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                  : 'bg-green-500 hover:bg-green-600'
+                  } text-white disabled:bg-gray-600 disabled:text-gray-400`}
               >
                 {isListening ? (
                   <>
@@ -612,14 +618,13 @@ const MarketIntel = () => {
                 )}
               </div>
             )}
-            
+
             {/* Document Validation Results */}
             {docValidation && (
-              <div className={`mt-4 p-4 rounded-xl border ${
-                docValidation.isValid 
-                  ? 'bg-green-900/20 border-green-500/30 text-green-300'
-                  : 'bg-red-900/20 border-red-500/30 text-red-300'
-              }`}>
+              <div className={`mt-4 p-4 rounded-xl border ${docValidation.isValid
+                ? 'bg-green-900/20 border-green-500/30 text-green-300'
+                : 'bg-red-900/20 border-red-500/30 text-red-300'
+                }`}>
                 <div className="flex items-start gap-3">
                   {docValidation.isValid ? (
                     <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
@@ -631,7 +636,7 @@ const MarketIntel = () => {
                       {docValidation.isValid ? 'Document Validated Successfully' : 'Document Incomplete'}
                     </p>
                     <p className="text-sm opacity-90 mb-3">{docValidation.message}</p>
-                    
+
                     {docValidation.extractedFields && docValidation.extractedFields.length > 0 && (
                       <div className="mb-3">
                         <p className="text-sm font-medium mb-1">Extracted Fields:</p>
@@ -644,7 +649,7 @@ const MarketIntel = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {docValidation.missingFields && docValidation.missingFields.length > 0 && (
                       <div>
                         <p className="text-sm font-medium mb-1">Missing Required Fields:</p>
@@ -660,7 +665,7 @@ const MarketIntel = () => {
                         </p>
                       </div>
                     )}
-                    
+
                     {docValidation.confidence && (
                       <div className="mt-3 text-xs opacity-75">
                         <p>Confidence: {docValidation.confidence}</p>
@@ -717,10 +722,9 @@ const MarketIntel = () => {
                                 </div>
                                 <div>
                                   <span className="text-gray-300">Risk:</span>
-                                  <span className={`font-medium ml-1 ${
-                                    crop.riskLevel === 'Low' ? 'text-green-400' :
+                                  <span className={`font-medium ml-1 ${crop.riskLevel === 'Low' ? 'text-green-400' :
                                     crop.riskLevel === 'Medium' ? 'text-yellow-400' : 'text-red-400'
-                                  }`}>{crop.riskLevel}</span>
+                                    }`}>{crop.riskLevel}</span>
                                 </div>
                                 <div>
                                   <span className="text-gray-300">Harvest:</span>

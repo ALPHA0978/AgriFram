@@ -9,6 +9,14 @@ export default defineConfig({
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'strict-origin-when-cross-origin'
+    },
+    proxy: {
+      '/api/ollama': {
+        target: 'https://ollama.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/ollama/, '/api'),
+        secure: true,
+      }
     }
   },
   build: {
