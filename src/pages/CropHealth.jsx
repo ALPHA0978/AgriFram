@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText, Mic, MicOff } from 'lucide-react';
+import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText, Mic, MicOff, Leaf } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 import CustomDropdown from '../components/CustomDropdown';
 import { useTranslation } from 'react-i18next';
@@ -349,23 +349,35 @@ set:
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-inter relative overflow-hidden">
+    <div className="min-h-screen bg-[#05080a] text-white font-inter relative overflow-hidden">
 
       {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-green-700 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div 
+          className="absolute inset-0 opacity-[0.15]" 
+          style={{ 
+            backgroundImage: `radial-gradient(#10b981 0.5px, transparent 0.5px)`, 
+            backgroundSize: '30px 30px' 
+          }}
+        />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-600/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-amber-600/5 blur-[100px] rounded-full" />
       </div>
 
       {/* Navbar */}
-      <nav className="relative z-10 w-full px-6 py-4 backdrop-filter backdrop-blur-lg bg-black/30 border-b border-green-400/20">
+      <nav className="relative z-10 w-full px-6 py-4 bg-black/60 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="text-2xl font-black text-white tracking-tight">
-            <span className="text-green-400">AgriFarm</span>AI
+          <div className="flex items-center gap-2">
+            <div className="bg-emerald-500 p-1.5 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+              <Leaf className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold tracking-tighter">
+              AgriFarm<span className="text-emerald-400">AI</span>
+            </span>
           </div>
           <button
             onClick={() => navigate('/farming-tool')}
-            className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] active:scale-95"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t('common.back_farming_tool')}</span>
@@ -387,9 +399,10 @@ set:
 
         <div className="space-y-8">
           {/* Crop Input Card */}
-          <div className={`bg-gray-900/50 rounded-[40px] p-8 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm transition-all duration-300 ${dropdownOpen ? 'pb-32' : ''}`}>
-            <div className="bg-green-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6">
-              <Camera className="w-8 h-8 text-green-400" />
+          <div className={`relative overflow-hidden bg-gray-900/40 backdrop-blur-xl rounded-[2rem] p-8 border border-white/10 hover:border-emerald-500/50 shadow-2xl transition-all duration-500 ${dropdownOpen ? 'pb-32' : ''}`}>
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full" />
+            <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6">
+              <Camera className="w-6 h-6 text-emerald-400" />
             </div>
             <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">{t('pages.crop_health.assessment')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -767,9 +780,10 @@ set:
           </div>
 
           {/* Crop Results Card */}
-          <div className="bg-gray-900/50 rounded-[40px] p-8 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-sm">
-            <div className="bg-green-400/10 w-16 h-16 rounded-[20px] flex items-center justify-center mb-6">
-              <BarChart3 className="w-8 h-8 text-green-400" />
+          <div className="relative overflow-hidden bg-gray-900/40 backdrop-blur-xl rounded-[2rem] p-8 border border-white/10 hover:border-emerald-500/50 shadow-2xl transition-all duration-500">
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full" />
+            <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6">
+              <BarChart3 className="w-6 h-6 text-emerald-400" />
             </div>
             <h3 className="text-2xl md:text-3xl font-bold mb-6 text-white">AI Crop Diagnosis</h3>
             {isAnalyzing && (

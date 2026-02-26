@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 // import { initDevToolsBlocker } from './utils/devToolsBlocker';
+import ProfileSetup from './pages/ProfileSetup';
 import Home from './pages/Home';
 import About from './pages/About';
 import AIAnalytics from './pages/AIAnalytics';
@@ -41,6 +42,7 @@ function App() {
           <Route path="/insights" element={<Insights />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/profile-setup" element={<ProfileSetup />} />
           <Route path="/farming-tool" element={<FarmingTool />} />
           <Route path="/soil-analysis" element={<SoilAnalysis />} />
           <Route path="/geo-soil-analysis" element={<GeoSoilAnalysis />} />

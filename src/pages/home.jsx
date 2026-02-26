@@ -131,10 +131,10 @@ const Home = () => {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
               <button 
-                onClick={() => navigate('/about')}
+                onClick={() => navigate('/login')}
                 className="px-8 py-4 rounded-2xl font-bold border border-white/10 hover:bg-white/5 transition-all"
               >
-                See Case Studies
+                Crop Dashboard
               </button>
             </div>
 

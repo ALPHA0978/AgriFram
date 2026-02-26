@@ -25,12 +25,19 @@ const Login = () => {
     setError('')
     try {
       const result = await signInWithGoogle()
+      const isNewUser = result.user.metadata.creationTime === result.user.metadata.lastSignInTime
       localStorage.setItem('agrifarm_user', JSON.stringify({
         email: result.user.email,
         name: result.user.displayName,
         uid: result.user.uid
       }))
-      navigate('/farming-tool')
+      // Check if profile is completed
+      const profileCompleted = localStorage.getItem('profileCompleted')
+      if (!profileCompleted || isNewUser) {
+        navigate('/profile-setup')
+      } else {
+        navigate('/farming-tool')
+      }
     } catch (error) {
       setError(error.message)
     } finally {
@@ -45,10 +52,12 @@ const Login = () => {
 
     try {
       let result
+      let isNewUser = false
       if (isLogin) {
         result = await signInWithEmail(formData.email, formData.password)
       } else {
         result = await signUpWithEmail(formData.email, formData.password)
+        isNewUser = true
       }
       
       localStorage.setItem('agrifarm_user', JSON.stringify({
@@ -56,7 +65,14 @@ const Login = () => {
         name: formData.name || result.user.email.split('@')[0],
         uid: result.user.uid
       }))
-      navigate('/farming-tool')
+      
+      // Check if profile is completed
+      const profileCompleted = localStorage.getItem('profileCompleted')
+      if (!profileCompleted || isNewUser) {
+        navigate('/profile-setup')
+      } else {
+        navigate('/farming-tool')
+      }
     } catch (error) {
       setError(error.message)
     } finally {

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Beaker, BarChart3, Loader, AlertTriangle, CheckCircle, Upload, FileText, Mic, MicOff, Navigation, Target, Ban } from 'lucide-react';
+import { ArrowLeft, MapPin, Beaker, BarChart3, Loader, AlertTriangle, CheckCircle, Upload, FileText, Mic, MicOff, Navigation, Target, Ban, Droplets, Leaf, Zap, TrendingUp, Calendar, DollarSign } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 
 const GeoSoilAnalysis = () => {
@@ -643,18 +643,281 @@ const GeoSoilAnalysis = () => {
                       </div>
                     </div>
 
-                    {/* Additional analysis sections would go here similar to the original soil analysis */}
-                    {soilAnalysis.recommendations && (
+                    {/* Soil Type & pH */}
+                    {(soilAnalysis.soilType || soilAnalysis.pH) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {soilAnalysis.soilType && (
+                          <div className="p-6 bg-gray-800/50 border border-green-400/30 rounded-xl">
+                            <h5 className="text-lg font-bold text-green-400 mb-2">Soil Type</h5>
+                            <p className="text-gray-300">{soilAnalysis.soilType}</p>
+                          </div>
+                        )}
+                        {soilAnalysis.pH && (
+                          <div className="p-6 bg-gray-800/50 border border-blue-400/30 rounded-xl">
+                            <h5 className="text-lg font-bold text-blue-400 mb-2">pH Level</h5>
+                            <p className="text-gray-300">{soilAnalysis.pH}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Nutrients */}
+                    {soilAnalysis.nutrients && (
                       <div className="p-6 bg-gray-800/50 rounded-xl border border-green-400/30">
-                        <h4 className="text-xl font-semibold text-white mb-4">Recommendations</h4>
-                        <div className="space-y-2">
-                          {soilAnalysis.recommendations.map((rec, index) => (
-                            <div key={index} className="flex items-start space-x-2">
-                              <CheckCircle className="w-4 h-4 mt-1 text-green-400" />
-                              <span className="text-gray-300">{rec}</span>
+                        <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
+                          <Leaf className="w-5 h-5 mr-2 text-green-400" />
+                          Nutrient Analysis
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {Object.entries(soilAnalysis.nutrients).map(([nutrient, value]) => (
+                            <div key={nutrient} className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                              <div className="text-sm text-gray-400 capitalize mb-1">{nutrient}</div>
+                              <div className="text-green-300 font-medium">{value}</div>
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Organic Matter & Salinity */}
+                    {(soilAnalysis.organicMatter || soilAnalysis.salinity) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {soilAnalysis.organicMatter && (
+                          <div className="p-6 bg-gray-800/50 border border-green-400/30 rounded-xl">
+                            <h5 className="text-lg font-bold text-green-400 mb-2 flex items-center">
+                              <Droplets className="w-5 h-5 mr-2" />
+                              Organic Matter
+                            </h5>
+                            <p className="text-gray-300">{soilAnalysis.organicMatter}</p>
+                          </div>
+                        )}
+                        {soilAnalysis.salinity && (
+                          <div className="p-6 bg-gray-800/50 border border-blue-400/30 rounded-xl">
+                            <h5 className="text-lg font-bold text-blue-400 mb-2">Salinity</h5>
+                            <p className="text-gray-300">{soilAnalysis.salinity}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Suitable Crops */}
+                    {soilAnalysis.suitableCrops && soilAnalysis.suitableCrops.length > 0 && (
+                      <div>
+                        <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
+                          <TrendingUp className="w-5 h-5 mr-2 text-green-400" />
+                          Recommended Crops for Your Location
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {soilAnalysis.suitableCrops.map((crop, index) => (
+                            <div key={index} className="p-6 bg-gray-800/50 rounded-xl border border-green-400/30 hover:border-green-400/50 transition-all duration-300">
+                              <div className="flex justify-between items-start mb-3">
+                                <h5 className="text-lg font-bold text-white">{crop.name}</h5>
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  crop.profitLevel?.includes('High') ? 'bg-green-500/20 text-green-400' :
+                                  crop.profitLevel?.includes('Medium') ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-blue-500/20 text-blue-400'
+                                }`}>
+                                  {crop.profitLevel}
+                                </span>
+                              </div>
+                              {crop.suitabilityScore && (
+                                <div className="mb-3">
+                                  <div className="flex justify-between text-sm mb-1">
+                                    <span className="text-gray-400">Suitability</span>
+                                    <span className="text-green-400 font-medium">{crop.suitabilityScore}%</span>
+                                  </div>
+                                  <div className="w-full bg-gray-700 rounded-full h-2">
+                                    <div className="bg-green-400 h-2 rounded-full" style={{width: `${crop.suitabilityScore}%`}}></div>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="space-y-2 text-sm">
+                                {crop.season && (
+                                  <div className="flex items-center text-gray-300">
+                                    <Calendar className="w-4 h-4 mr-2 text-blue-400" />
+                                    <span>{crop.season} • {crop.duration}</span>
+                                  </div>
+                                )}
+                                {crop.investment && (
+                                  <div className="flex items-center text-gray-300">
+                                    <DollarSign className="w-4 h-4 mr-2 text-yellow-400" />
+                                    <span>Investment: {crop.investment}</span>
+                                  </div>
+                                )}
+                                {crop.roi && (
+                                  <div className="flex items-center text-green-400 font-medium">
+                                    <TrendingUp className="w-4 h-4 mr-2" />
+                                    <span>ROI: {crop.roi}</span>
+                                  </div>
+                                )}
+                                {crop.marketDemand && (
+                                  <div className="text-gray-400">
+                                    Market Demand: <span className="text-gray-300">{crop.marketDemand}</span>
+                                  </div>
+                                )}
+                                {crop.waterRequirement && (
+                                  <div className="flex items-center text-gray-400">
+                                    <Droplets className="w-4 h-4 mr-2 text-blue-400" />
+                                    <span>Water: {crop.waterRequirement}</span>
+                                  </div>
+                                )}
+                                {crop.soilMatch && (
+                                  <div className="mt-2 pt-2 border-t border-gray-700">
+                                    <p className="text-xs text-gray-400">{crop.soilMatch}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Improvements */}
+                    {soilAnalysis.improvements && soilAnalysis.improvements.length > 0 && (
+                      <div className="p-6 bg-gray-800/50 rounded-xl border border-green-400/30">
+                        <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
+                          <Zap className="w-5 h-5 mr-2 text-yellow-400" />
+                          Soil Improvements
+                        </h4>
+                        <div className="space-y-2">
+                          {soilAnalysis.improvements.map((improvement, index) => (
+                            <div key={index} className="flex items-start space-x-2">
+                              <CheckCircle className="w-4 h-4 mt-1 text-green-400" />
+                              <span className="text-gray-300">{improvement}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fertilizers */}
+                    {soilAnalysis.fertilizers && soilAnalysis.fertilizers.length > 0 && (
+                      <div className="p-6 bg-gray-800/50 rounded-xl border border-purple-400/30">
+                        <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
+                          <Zap className="w-5 h-5 mr-2 text-purple-400" />
+                          Fertilizer Recommendations
+                        </h4>
+                        <div className="space-y-3">
+                          {soilAnalysis.fertilizers.map((fertilizer, index) => (
+                            <div key={index} className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                              <div className="flex justify-between items-center">
+                                <span className="text-white font-medium">{fertilizer}</span>
+                                <span className="text-xs bg-purple-400/20 text-purple-400 px-2 py-1 rounded-full">
+                                  {index === 0 ? 'Primary' : index === 1 ? 'Secondary' : 'Optional'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Management Plan */}
+                    {soilAnalysis.managementPlan && (
+                      <div>
+                        <h4 className="text-xl font-semibold text-white mb-4 flex items-center">
+                          <Target className="w-5 h-5 mr-2 text-purple-400" />
+                          Soil Management Plan
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {soilAnalysis.managementPlan.immediate && (
+                            <div className="p-6 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+                              <h5 className="text-lg font-bold text-purple-400 mb-4">Immediate Actions</h5>
+                              <div className="space-y-2">
+                                {soilAnalysis.managementPlan.immediate.map((action, index) => (
+                                  <div key={index} className="flex items-start space-x-2">
+                                    <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0 mt-1" />
+                                    <span className="text-gray-300 text-sm">{action}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {soilAnalysis.managementPlan.shortTerm && (
+                            <div className="p-6 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                              <h5 className="text-lg font-bold text-blue-400 mb-4">Short Term (1-3 months)</h5>
+                              <div className="space-y-2">
+                                {soilAnalysis.managementPlan.shortTerm.map((action, index) => (
+                                  <div key={index} className="flex items-start space-x-2">
+                                    <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-1" />
+                                    <span className="text-gray-300 text-sm">{action}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {soilAnalysis.managementPlan.longTerm && (
+                            <div className="p-6 bg-green-500/10 border border-green-500/30 rounded-xl">
+                              <h5 className="text-lg font-bold text-green-400 mb-4">Long Term (6+ months)</h5>
+                              <div className="space-y-2">
+                                {soilAnalysis.managementPlan.longTerm.map((action, index) => (
+                                  <div key={index} className="flex items-start space-x-2">
+                                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-1" />
+                                    <span className="text-gray-300 text-sm">{action}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Monitoring & Risk Factors */}
+                    {(soilAnalysis.monitoring || soilAnalysis.riskFactors || soilAnalysis.successIndicators) && (
+                      <div>
+                        <h4 className="text-xl font-semibold text-white mb-6 flex items-center">
+                          <AlertTriangle className="w-5 h-5 mr-2 text-orange-400" />
+                          Monitoring & Risk Management
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {soilAnalysis.riskFactors && soilAnalysis.riskFactors.length > 0 && (
+                            <div className="p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
+                              <h5 className="text-lg font-bold text-red-400 mb-4 flex items-center">
+                                <AlertTriangle className="w-5 h-5 mr-2" />
+                                Risk Factors
+                              </h5>
+                              <div className="space-y-3">
+                                {soilAnalysis.riskFactors.map((risk, index) => (
+                                  <div key={index} className="flex items-start space-x-2">
+                                    <div className="w-2 h-2 bg-red-400 rounded-full flex-shrink-0 mt-2"></div>
+                                    <span className="text-gray-300 text-sm">{risk}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {soilAnalysis.successIndicators && soilAnalysis.successIndicators.length > 0 && (
+                            <div className="p-6 bg-green-500/10 border border-green-500/30 rounded-xl">
+                              <h5 className="text-lg font-bold text-green-400 mb-4 flex items-center">
+                                <CheckCircle className="w-5 h-5 mr-2" />
+                                Success Indicators
+                              </h5>
+                              <div className="space-y-3">
+                                {soilAnalysis.successIndicators.map((indicator, index) => (
+                                  <div key={index} className="flex items-start space-x-2">
+                                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-1" />
+                                    <span className="text-gray-300 text-sm">{indicator}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {soilAnalysis.monitoring && (
+                          <div className="mt-6 p-6 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                            <h5 className="text-lg font-bold text-blue-400 mb-4">Monitoring Schedule</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                              {Object.entries(soilAnalysis.monitoring).map(([key, value]) => (
+                                <div key={key} className="text-center">
+                                  <div className="text-sm text-gray-400 capitalize mb-1">{key.replace(/([A-Z])/g, ' $1')}</div>
+                                  <div className="text-blue-300 font-medium text-sm">{value}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </>
