@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, ArrowRight, Cloud, Droplet, Wind, Thermometer, TrendingUp, Cpu, Wrench, Menu, X, ArrowUpRight, Stethoscope } from 'lucide-react';
+import { 
+  Leaf, ArrowRight, Cloud, Droplet, Wind, Thermometer, 
+  TrendingUp, Cpu, Wrench, Menu, X, ArrowUpRight, 
+  ShieldCheck, Activity, BarChart3, Radio
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
@@ -8,287 +12,258 @@ const Home = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t } = useTranslation();
+  const [scrolled, setScrolled] = useState(false);
 
-  // Reusable component for the glassmorphic cards
+  // Handle navbar transparency on scroll
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const GlassCard = ({ children, extraClasses = '' }) => (
-    <div className={`bg-gray-900/50 rounded-[40px] p-6 md:p-8 border border-green-400/30 shadow-2xl shadow-green-500/10 backdrop-filter backdrop-blur-lg transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 relative group ${extraClasses}`}>
+    <div className={`
+      relative overflow-hidden
+      bg-gray-900/40 backdrop-blur-xl 
+      rounded-[2rem] p-8 
+      border border-white/10 
+      hover:border-emerald-500/50 
+      shadow-2xl transition-all duration-500 
+      group ${extraClasses}`}
+    >
+      {/* Subtle inner glow */}
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full group-hover:bg-emerald-500/20 transition-colors" />
       {children}
     </div>
   );
 
-  const images = [
-    'https://img.freepik.com/premium-photo/generative-ai-plant-growing-from-circuit-board-ecology-environment-conceptx9xa_93150-32770.jpg',
-    'https://img.freepik.com/premium-photo/generative-ai-plant-growing-from-circuit-board-ecology-environment-conceptx9xa_93150-32770.jpg'
-  ];
-
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white font-inter relative overflow-hidden">
+    <div className="min-h-screen bg-[#05080a] text-white font-inter relative selection:bg-emerald-500/30">
       
-      {/* SVG Clip Path Definitions */}
-      <svg className="absolute w-0 h-0">
-        <defs>
-          <clipPath id="home-clip-1">
-            <path d="M 87.26477090413202,0 C 84.32855514545265,29.64130419798463 75.22636960464351,36.11933702559631 53.41017687861051,53.4101768786105 C 31.5939841525775,70.70101673162469 25.24043055518949,70.62801729617252 4.235034336112663e-15,69.16335941205675 C -25.240430555189484,67.69870152794098 -25.107358262274794,64.84238519516163 -47.55154534214744,47.55154534214745 C -69.9957324220201,30.260705489133265 -89.8118646540933,23.740656336471023 -89.7767483194906,1.0994480746732168e-14 C -89.74163198488789,-23.740656336471 -69.85526708360925,-24.362986870098208 -47.41108000373661,-47.41108000373659 C -24.966892923863963,-70.45917313737498 -28.14152997926617,-87.75638255715567 -1.69354640895362e-14,-92.19237253455353 C 28.141529979266135,-96.62836251195138 43.33884718729499,-88.2031330469664 65.155039913328,-65.15503991332803 C 86.971232639361,-42.10694677968964 90.20098666281139,-29.64130419798463 87.26477090413202,0 Z" transform="translate(100,100) scale(1.2)"/>
-          </clipPath>
-          <clipPath id="home-clip-2">
-            <path d="M 90.41930202801184,0 C 93.85215248243583,24.820300467002017 79.11112734985495,37.67003976597313 56.50630184285199,56.50630184285198 C 33.901476335849026,75.34256391973084 25.417819876395367,78.18037935254603 4.6135536120700715e-15,75.3450483075154 C -25.41781987639536,72.50971726248477 -22.588170246479102,64.00123973960831 -45.164977662729456,45.16497766272946 C -67.7417850789798,26.328715585850617 -87.46238766578418,25.427330830581976 -90.30722966500142,1.1059445974910889e-14 C -93.15207166421865,-25.427330830581955 -79.12115307584877,-33.64564130580342 -56.54434565959841,-56.5443456595984 C -33.96753824334806,-79.44305001339337 -24.82981142118864,-95.03717882379046 -1.682569499489794e-14,-91.59481741517988 C 24.829811421188605,-88.1524560065693 20.170074518153108,-65.67360437895105 42.77490002515607,-42.774900025156086 C 65.37972553215903,-19.876195671361117 86.98645157358786,-24.820300467002017 90.41930202801184,0 Z" transform="translate(100,100) scale(1.2)"/>
-          </clipPath>
-        </defs>
-      </svg>
-      
-
-      
-      {/* Enhanced Background Effects & Decorative Elements */}
-      <div className="absolute inset-0 z-1 pointer-events-none">
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-repeat bg-center opacity-5" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239CA3AF' fill-opacity='0.1'%3E%3Cpath d='M0 0h1v20H0V0zm2 0h1v20H2V0zm2 0h1v20H4V0zm2 0h1v20H6V0zm2 0h1v20H8V0zm2 0h1v20h-1V0zm2 0h1v20h-1V0zm2 0h1v20h-1V0zm2 0h1v20h-1V0zm2 0h1v20h-1V0zM0 0h20v1H0V0zM0 2h20v1H0V2zM0 4h20v1H0V4zM0 6h20v1H0V6zM0 8h20v1H0V8zM0 10h20v1H0V10zM0 12h20v1H0V12zM0 14h20v1H0V14zM0 16h20v1H0V16zM0 18h20v1H0V18z'/%3E%3C/g%3E%3C/svg%3E")`}}></div>
-        
-        {/* Decorative SVG Shapes */}
-        <div
-          className="absolute top-20 right-10 w-80 h-80 opacity-10 transition-all duration-700 transform hover:scale-110"
-          style={{
-            clipPath: 'url(#home-clip-1)',
-            backgroundImage: `url('${images[0]}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+      {/* --- ADVANCED AGRI-TECH BACKGROUND --- */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Animated Topographic Grid */}
+        <div 
+          className="absolute inset-0 opacity-[0.15]" 
+          style={{ 
+            backgroundImage: `radial-gradient(#10b981 0.5px, transparent 0.5px)`, 
+            backgroundSize: '30px 30px' 
           }}
-        ></div>
+        />
         
-        <div
-          className="absolute bottom-20 left-10 w-96 h-96 opacity-8 transition-all duration-700 transform hover:scale-110"
-          style={{
-            clipPath: 'url(#home-clip-2)',
-            backgroundImage: `url('${images[1]}')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        ></div>
-        
-
-        
-
+        {/* Dynamic Light Rays */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-600/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-amber-600/5 blur-[100px] rounded-full" />
       </div>
-      
-      {/* Navbar */}
-      <nav className="relative z-20 w-full px-4 sm:px-6 py-4 bg-black/80 border-b border-green-400/20">
+
+      {/* --- NAVBAR --- */}
+      <nav className={`fixed top-0 z-50 w-full px-6 py-4 transition-all duration-300 ${scrolled ? 'bg-black/60 backdrop-blur-md border-b border-white/5' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="text-2xl font-black text-white tracking-tight">
-            <span className="text-green-400">AgriFarm</span>AI 
-          </div>
-          
-          {/* Desktop Menu */}
-          <div className="flex-1 hidden md:flex items-center justify-center">
-            <div className="bg-white/10 rounded-full px-4 py-2 border border-white/20 shadow-lg space-x-4 lg:space-x-8">
-              <button onClick={() => navigate('/')} className="text-green-400 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.home')}</button>
-              <button onClick={() => navigate('/about')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.about')}</button>
-              <button onClick={() => navigate('/analysis')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.analysis')}</button>
-              <button onClick={() => navigate('/insights')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.insights')}</button>
-              <button onClick={() => navigate('/ai-analytics')} className="hover:text-green-300 transition-colors duration-300 text-sm lg:text-base font-medium">{t('nav.ai_analytics')}</button>
+          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate('/')}>
+            <div className="bg-emerald-500 p-1.5 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+              <Leaf className="w-5 h-5 text-white" />
             </div>
+            <span className="text-xl font-bold tracking-tighter">
+              AgriFarm<span className="text-emerald-400">AI</span>
+            </span>
           </div>
           
-          {/* Language Switcher & Contact Button (Desktop) */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center bg-white/5 border border-white/10 rounded-full px-1.5 py-1 backdrop-blur-md">
+            {[
+              { name: t('nav.home'), path: '/' },
+              { name: t('nav.analysis'), path: '/analysis' },
+              { name: t('nav.insights'), path: '/insights' },
+              { name: t('nav.ai_analytics'), path: '/ai-analytics' }
+            ].map((item) => (
+              <button 
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className="px-5 py-2 rounded-full text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+              >
+                {item.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-4">
             <LanguageSwitcher />
             <button 
-              onClick={() => navigate('/contact')} 
-              className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 py-2 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
+              onClick={() => navigate('/farming-tool')}
+              className="bg-emerald-500 hover:bg-emerald-400 text-black px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] active:scale-95"
             >
-              <span>{t('nav.contact')}</span>
-              <ArrowUpRight className="w-4 h-4 ml-1" />
+              Get Started
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden text-white" 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          <button className="md:hidden p-2 bg-white/5 rounded-lg" onClick={() => setIsMobileMenuOpen(true)}>
+            <Menu size={24} />
           </button>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 z-50 bg-black/90 transition-opacity duration-500 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <div className="flex justify-end p-4">
-          <button onClick={() => setIsMobileMenuOpen(false)}>
-            <X size={24} className="text-white" />
-          </button>
-        </div>
-        <div className="flex flex-col items-center space-y-8 mt-16">
-          <div className="mb-4">
-            <LanguageSwitcher />
-          </div>
-          <button onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-green-400">{t('nav.home')}</button>
-          <button onClick={() => { navigate('/about'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.about')}</button>
-          <button onClick={() => { navigate('/analysis'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.analysis')}</button>
-          <button onClick={() => { navigate('/insights'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.insights')}</button>
-          <button onClick={() => { navigate('/ai-analytics'); setIsMobileMenuOpen(false); }} className="text-3xl font-bold text-gray-300 hover:text-green-300">{t('nav.ai_analytics')}</button>
-          <button onClick={() => { navigate('/contact'); setIsMobileMenuOpen(false); }} className="mt-8 bg-green-500 px-8 py-3 rounded-full font-bold text-xl">{t('nav.contact')}</button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-20 pb-10 flex flex-col lg:flex-row items-center gap-12">
-        
-        {/* Left Section - Hero & Features */}
-        <div className="flex-1 flex flex-col space-y-8 text-center lg:text-left">
-          <h1 className="text-4xl md:text-6xl lg:text-8xl font-black leading-tight tracking-tighter">
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-200 via-white to-green-700">{t('hero.title1')}</span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-700 via-green-500 to-green-300">{t('hero.title2')}</span>
-          </h1>
-          <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0">
-            {t('hero.tagline')}
-          </p>
+      {/* --- HERO SECTION --- */}
+      <main className="relative z-10 max-w-7xl mx-auto px-6 pt-32 lg:pt-48 pb-24">
+        <div className="flex flex-col lg:flex-row items-center gap-16">
           
-          <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
-            <button 
-              onClick={() => navigate('/farming-tool')}
-              className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
-            >
-              <Leaf className="w-5 h-5" />
-              <span>{t('hero.cta_farming_ai')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/about')}
-              className="flex items-center justify-center space-x-2 bg-{rgb} hover:bg-teal-600 text-white font-semibold rounded-full px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-teal-500/30"
-            >
+          {/* Hero Content */}
+          <div className="flex-1 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest mb-6">
+              <Radio className="w-3 h-3 animate-pulse" /> Precision Agriculture 4.0
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tight mb-8">
+              Harvest the Power of <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-amber-200">
+                Artificial Intelligence
+              </span>
+            </h1>
+
+            <p className="text-gray-400 text-lg md:text-xl max-w-xl mb-10 leading-relaxed">
+              Transform your soil data into high-yield strategies. Our AI monitors crop health in real-time to prevent disease before it spreads.
+            </p>
+
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+              <button 
+                onClick={() => navigate('/farming-tool')}
+                className="group flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black px-8 py-4 rounded-2xl font-bold transition-all"
+              >
+                Launch AI Farm Tool
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button 
+                onClick={() => navigate('/about')}
+                className="px-8 py-4 rounded-2xl font-bold border border-white/10 hover:bg-white/5 transition-all"
+              >
+                See Case Studies
+              </button>
+            </div>
+
+            {/* Micro Stats */}
+            <div className="grid grid-cols-3 gap-8 mt-16 pt-8 border-t border-white/5">
+              {[
+                { label: 'Prediction Accuracy', val: '99.2%' },
+                { label: 'Water Saved', val: '30%' },
+                { label: 'Yield Increase', val: '+24%' },
+              ].map((stat, i) => (
+                <div key={i}>
+                  <div className="text-2xl font-bold text-white">{stat.val}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Hero Visual - Live Dashboard Card */}
+          <div className="flex-1 w-full relative">
+            {/* Decorative Sensor Rings */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-emerald-500/5 rounded-full pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] border border-emerald-500/5 rounded-full pointer-events-none opacity-50" />
+            
+            <GlassCard extraClasses="relative z-10 !p-0 overflow-hidden">
+              <div className="bg-emerald-500/10 p-4 border-b border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Live Field Data</span>
+                </div>
+                <BarChart3 className="w-4 h-4 text-gray-500" />
+              </div>
               
-              <span>{t('hero.cta_learn_more')}</span>
-            </button>
+              <div className="p-8">
+                <div className="flex justify-between items-end mb-8">
+                  <div>
+                    <span className="text-gray-500 text-sm block mb-1">Current Soil Temp</span>
+                    <span className="text-5xl font-black text-white">24.5°C</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-emerald-400 text-sm font-bold flex items-center gap-1">
+                      <TrendingUp className="w-4 h-4" /> Optimal
+                    </span>
+                    <span className="text-gray-500 text-xs uppercase">Conditions</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { icon: Droplet, label: 'Humidity', val: '64%', color: 'text-blue-400' },
+                    { icon: Wind, label: 'Wind Speed', val: '12km/h', color: 'text-slate-400' },
+                    { icon: Thermometer, label: 'Nitrogen', val: 'Low', color: 'text-amber-400' },
+                    { icon: Activity, label: 'Photosynth', val: 'High', color: 'text-emerald-400' },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                      <item.icon className={`w-5 h-5 ${item.color} mb-2`} />
+                      <div className="text-gray-500 text-[10px] uppercase font-bold">{item.label}</div>
+                      <div className="text-lg font-bold">{item.val}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </GlassCard>
+            
+            {/* Floating Mini-Badge */}
+            <div className="absolute -bottom-6 -right-6 bg-amber-500 text-black p-4 rounded-2xl shadow-xl z-20 animate-bounce transition-all duration-1000">
+               <ShieldCheck className="w-6 h-6 mb-1" />
+               <div className="text-[10px] font-black uppercase leading-none">Pest Alert<br/>Prevented</div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-10 lg:pt-20">
-            <div className="bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-4 text-center border border-green-400/30 shadow-lg shadow-green-500/10">
-              <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                <Leaf className="w-6 h-6 text-green-400" />
-              </div>
-              <div className="text-gray-300 font-medium text-sm">{t('features.crop_disease')}</div>
-              <div className="font-bold tracking-wide text-white">{t('features.detection')}</div>
-            </div>
-            <div className="bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-4 text-center border border-green-400/30 shadow-lg shadow-green-500/10">
-              <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                <Cpu className="w-6 h-6 text-green-400" />
-              </div>
-              <div className="text-gray-300 font-medium text-sm">{t('features.ai_powered')}</div>
-              <div className="font-bold tracking-wide text-white">{t('features.insights')}</div>
-            </div>
-            <div className="bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-4 text-center border border-green-400/30 shadow-lg shadow-green-500/10">
-              <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                <TrendingUp className="w-6 h-6 text-green-400" />
-              </div>
-              <div className="text-gray-300 font-medium text-sm">{t('features.yield')}</div>
-              <div className="font-bold tracking-wide text-white">{t('features.optimization')}</div>
-            </div>
-            <div className="bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-4 text-center border border-green-400/30 shadow-lg shadow-green-500/10">
-              <div className="bg-green-400/20 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                <Wrench className="w-6 h-6 text-green-400" />
-              </div>
-              <div className="text-gray-300 font-medium text-sm">{t('features.smart')}</div>
-              <div className="font-bold tracking-wide text-white">{t('features.automation')}</div>
-            </div>
-          </div>
         </div>
-        
-        {/* Right Section - Live Data Dashboard */}
-        <div className="flex-1 w-full lg:w-auto mt-12 lg:mt-0 flex flex-col justify-center items-center">
-          <GlassCard extraClasses="w-full max-w-sm shadow-2xl shadow-green-500/20 border-green-400/30">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2 text-gray-300 text-sm">
-                <Cloud className="size-4" />
-                <span className="font-medium">Chaprashirat Noakhali, BD</span>
-              </div>
-              <Cloud className="size-8 text-green-400" />
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-5xl md:text-6xl font-black text-white tracking-tight">+20°C</div>
-              <div className="text-sm text-gray-300">
-                <div className="flex items-center space-x-1">
-                  <Thermometer className="size-4" />
-                  <span className="font-medium">H: 22°C</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Thermometer className="size-4" />
-                  <span className="font-medium">L: 18°C</span>
-                </div>
-              </div>
-            </div>
+      </main>
 
-            <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
-              <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/20">
-                <Droplet className="w-6 h-6 text-green-400 mx-auto mb-1" />
-                <div className="text-gray-300 font-medium">{t('weather.humidity')}</div>
-                <div className="font-bold tracking-wide">40%</div>
+      {/* --- FEATURE SECTION (Professional Grid) --- */}
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { icon: Leaf, title: 'Crop Diagnosis', desc: 'Scan leaves with AI to detect 50+ diseases instantly.' },
+            { icon: BarChart3, title: 'Yield Analytics', desc: 'Historical data meets satellite imagery for precise forecasts.' },
+            { icon: Cpu, title: 'Smart Irrigation', desc: 'Automated water management based on real-time soil moisture.' },
+            { icon: Wrench, title: 'Farm Management', desc: 'Resource planning and maintenance logs in one cloud dashboard.' },
+          ].map((feat, i) => (
+            <div key={i} className="group p-8 rounded-[2rem] bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all">
+              <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <feat.icon className="w-6 h-6 text-emerald-400" />
               </div>
-              <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/20">
-                <Wind className="w-6 h-6 text-green-400 mx-auto mb-1" />
-                <div className="text-gray-300 font-medium">{t('weather.wind')}</div>
-                <div className="font-bold tracking-wide">23 m/s</div>
-              </div>
-              <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/20">
-                <Droplet className="w-6 h-6 text-green-400 mx-auto mb-1" />
-                <div className="text-gray-300 font-medium">{t('weather.precipitation')}</div>
-                <div className="font-bold tracking-wide">9.5 ml</div>
-              </div>
-              <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/20">
-                <TrendingUp className="w-6 h-6 text-green-400 mx-auto mb-1" />
-                <div className="text-gray-300 font-medium">{t('weather.yield')}</div>
-                <div className="font-bold tracking-wide">+15%</div>
-              </div>
+              <h3 className="text-xl font-bold mb-3">{feat.title}</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">{feat.desc}</p>
             </div>
-          </GlassCard>
+          ))}
         </div>
-      </div>
-      
-      {/* Footer */}
-      <footer className="relative z-10 bg-gray-900/80 border-t border-green-400/20 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Brand Section */}
-            <div className="col-span-1 md:col-span-2">
-              <div className="text-2xl font-black text-white tracking-tight mb-4">
-                <span className="text-green-400">AgriFarm</span>AI 
-              </div>
-              <p className="text-gray-300 mb-6 max-w-md">
-                {t('footer.brand_desc')}
-              </p>
-              <div className="flex space-x-4">
-                <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center hover:bg-green-500/30 transition-colors cursor-pointer">
-                  <span className="text-green-400 text-sm font-bold">f</span>
-                </div>
-                <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center hover:bg-green-500/30 transition-colors cursor-pointer">
-                  <span className="text-green-400 text-sm font-bold">t</span>
-                </div>
-                <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center hover:bg-green-500/30 transition-colors cursor-pointer">
-                  <span className="text-green-400 text-sm font-bold">in</span>
-                </div>
-              </div>
+      </section>
+
+      {/* --- REFINED FOOTER --- */}
+      <footer className="relative z-10 border-t border-white/5 bg-black/40 pt-20 pb-10">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          <div className="col-span-1 md:col-span-2">
+            <div className="flex items-center gap-2 mb-6">
+               <Leaf className="w-6 h-6 text-emerald-500" />
+               <span className="text-2xl font-bold tracking-tighter">AgriFarmAI</span>
             </div>
-            
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-white font-semibold mb-4">{t('footer.quick_links')}</h3>
-              <ul className="space-y-2">
-                <li><button onClick={() => navigate('/')} className="text-gray-300 hover:text-green-400 transition-colors">{t('nav.home')}</button></li>
-                <li><button onClick={() => navigate('/about')} className="text-gray-300 hover:text-green-400 transition-colors">{t('nav.about')}</button></li>
-                <li><button onClick={() => navigate('/analysis')} className="text-gray-300 hover:text-green-400 transition-colors">{t('nav.analysis')}</button></li>
-                <li><button onClick={() => navigate('/insights')} className="text-gray-300 hover:text-green-400 transition-colors">{t('nav.insights')}</button></li>
-                <li><button onClick={() => navigate('/farming-tool')} className="text-gray-300 hover:text-green-400 transition-colors">{t('footer.ai_tools')}</button></li>
-              </ul>
-            </div>
-            
-        
+            <p className="text-gray-500 max-w-sm mb-8">
+              Empowering the next generation of farmers with space-grade analytics and artificial intelligence.
+            </p>
           </div>
-          
-          {/* Bottom Bar */}
-          <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">{t('footer.copy')}</p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">{t('footer.privacy')}</button>
-              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">{t('footer.terms')}</button>
-              <button className="text-gray-400 hover:text-green-400 text-sm transition-colors">{t('footer.sdg2')}</button>
-            </div>
+          <div>
+            <h4 className="font-bold mb-6">Resources</h4>
+            <ul className="space-y-4 text-sm text-gray-500">
+              <li className="hover:text-emerald-400 cursor-pointer transition-colors">Documentation</li>
+              <li className="hover:text-emerald-400 cursor-pointer transition-colors">API Reference</li>
+              <li className="hover:text-emerald-400 cursor-pointer transition-colors">Hardware Setup</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold mb-6">Company</h4>
+            <ul className="space-y-4 text-sm text-gray-500">
+              <li className="hover:text-emerald-400 cursor-pointer transition-colors">About Mission</li>
+              <li className="hover:text-emerald-400 cursor-pointer transition-colors">Sustainability</li>
+              <li className="hover:text-emerald-400 cursor-pointer transition-colors">Contact Support</li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between gap-4 text-xs text-gray-600">
+          <p>© 2026 AgriFarm AI. All rights reserved.</p>
+          <div className="flex gap-6 uppercase tracking-widest font-bold">
+            <span className="hover:text-white cursor-pointer transition-colors">Privacy</span>
+            <span className="hover:text-white cursor-pointer transition-colors">Terms</span>
+            <span className="hover:text-white cursor-pointer transition-colors">Cookies</span>
           </div>
         </div>
       </footer>

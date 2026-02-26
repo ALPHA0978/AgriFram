@@ -296,11 +296,11 @@
         },
         "monitoring": {
           "title": "IoT Monitoring",
-          "desc": "Real-time sensor data analysis and irrigation optimization"
+          "desc": "Real-time sensor data analysis and irrigation optimization, round table ai system for smart farming"
         },
         "market": {
           "title": "Market Intelligence",
-          "desc": "Market analysis, price trends, and profitability insights"
+          "desc": "Market analysis, price trends, and profitability insights help farmers increase profits."
         }
       },
       "card": {

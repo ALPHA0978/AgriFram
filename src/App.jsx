@@ -15,12 +15,7 @@ import GeoSoilAnalysis from './pages/GeoSoilAnalysis';
 import CropHealth from './pages/CropHealth';
 import Monitoring from './pages/Monitoring';
 import MarketIntel from './pages/MarketIntel';
-import MedicalDashboard from './pages/MedicalDashboard';
-import MedicalDiagnosis from './pages/MedicalDiagnosis';
-import MedicalVitals from './pages/MedicalVitals';
-import MedicalPredictor from './pages/MedicalPredictor';
-import MedicalAnalytics from './pages/MedicalAnalytics';
-import ProtectedRoute from './components/ProtectedRoute';
+
 
 
 function App() {
@@ -52,11 +47,7 @@ function App() {
           <Route path="/crop-health" element={<CropHealth />} />
           <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/market-intel" element={<MarketIntel />} />
-          <Route path="/medical-dashboard" element={<ProtectedRoute><MedicalDashboard /></ProtectedRoute>} />
-          <Route path="/medical-diagnosis" element={<ProtectedRoute><MedicalDiagnosis /></ProtectedRoute>} />
-          <Route path="/medical-vitals" element={<ProtectedRoute><MedicalVitals /></ProtectedRoute>} />
-          <Route path="/medical-predictor" element={<ProtectedRoute><MedicalPredictor /></ProtectedRoute>} />
-          <Route path="/medical-analytics" element={<ProtectedRoute><MedicalAnalytics /></ProtectedRoute>} />
+      
         </Routes>
 
       </Router>
