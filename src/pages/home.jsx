@@ -131,7 +131,7 @@ const Home = () => {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
               <button 
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/dashboard')}
                 className="px-8 py-4 rounded-2xl font-bold border border-white/10 hover:bg-white/5 transition-all"
               >
                 Crop Dashboard

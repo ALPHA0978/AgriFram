@@ -11,6 +11,45 @@ export class FarmerAI extends BaseAI {
     }
     return sanitized;
   }
+  static async analyzeCropRequirements(cropName) {
+    const systemPrompt = `You are an expert horticulturist and agronomist specializing in ${cropName}. Provide HIGHLY SPECIFIC requirements for ${cropName} ONLY. Return ONLY valid JSON:
+{
+  "npk": {
+    "nitrogen": "Specific N requirement for ${cropName} (e.g., 120-150 ppm)",
+    "phosphorus": "Specific P requirement for ${cropName} (e.g., 60-80 ppm)",
+    "potassium": "Specific K requirement for ${cropName} (e.g., 40-60 ppm)"
+  },
+  "moisture": "Exact moisture needs for ${cropName} (e.g., 60-70% field capacity, well-drained, etc.)",
+  "temperature": "Optimal temperature range specifically for ${cropName} (e.g., 20-30°C day, 15-20°C night)",
+  "lightIntensity": "Exact light requirements for ${cropName} (e.g., Full sun 8+ hours, Partial shade, 30000-50000 lux)",
+  "waterRequirement": "Precise water needs for ${cropName} (e.g., 500-700mm per season, 25-50mm per week)",
+  "growthTips": "3-4 specific tips for growing ${cropName} successfully, including common issues to avoid"
+}`;
+
+    const response = await this.callAPI(
+      `I need EXACT growing requirements for ${cropName}. Be very specific to this plant/crop. Include:
+- Precise NPK fertilizer needs (nitrogen, phosphorus, potassium levels)
+- Exact soil moisture requirements
+- Optimal temperature range (day and night if different)
+- Light intensity needs (hours of sunlight or lux levels)
+- Water requirements (weekly or seasonal)
+- Specific growth tips and common problems for ${cropName}
+
+Do NOT give generic data. Focus specifically on ${cropName}.`,
+      systemPrompt,
+      'deepseek-v3.1:671b-cloud'
+    );
+
+    return this.parseJSON(response) || {
+      npk: { nitrogen: '100-120 kg/ha', phosphorus: '50-60 kg/ha', potassium: '40-50 kg/ha' },
+      moisture: '60-70%',
+      temperature: '20-30°C',
+      lightIntensity: 'Full sun',
+      waterRequirement: '500-600mm',
+      growthTips: `Maintain consistent moisture and temperature for optimal ${cropName} growth.`
+    };
+  }
+
   static async analyzeCrop(cropData, onStepUpdate = null) {
     const analysisId = `[CROP-${Date.now()}]`;
     console.log(`${analysisId} 🤖 Starting Ollama Cloud Swarm for: ${cropData.cropType || 'Unknown crop'}`);
@@ -776,6 +815,225 @@ Return ONLY valid JSON matching this exact structure:
 
     const response = await this.callAPI(`Analyze growth timeline for ${crops.join(', ')} in ${season} season. Provide detailed growth periods and critical stages.`, systemPrompt);
     return this.parseJSON(response) || crops.map(crop => ({ crop, growthPeriod: '90-120 days', season: 'Kharif' }));
+  }
+
+  static async analyzeCropCycle(cropName, plantingDate) {
+    const systemPrompt = `You are an expert crop growth specialist. Return ONLY valid JSON:
+{
+  "daysPlanted": number,
+  "daysToHarvest": number,
+  "currentStage": "Seedling|Vegetative|Flowering|Fruiting|Harvest",
+  "lightingSchedule": "e.g., 18 hrs On / 6 hrs Off",
+  "lightingPercentage": number (0-100),
+  "irrigationMethod": "e.g., Drip|Ebb and Flow|Sprinkler",
+  "stageTimeline": {
+    "seedling": "0-X days",
+    "vegetative": "X-Y days",
+    "flowering": "Y-Z days",
+    "harvest": "Z+ days"
+  }
+}`;
+
+    const daysSincePlanting = plantingDate ? Math.floor((new Date() - new Date(plantingDate)) / (1000 * 60 * 60 * 24)) : 0;
+
+    const response = await this.callAPI(
+      `Crop: ${cropName}. Planted ${daysSincePlanting} days ago on ${plantingDate}. Provide:
+- Current growth stage
+- Total days to harvest
+- Optimal lighting schedule
+- Irrigation method
+- Stage timeline breakdown`,
+      systemPrompt,
+      'deepseek-v3.1:671b-cloud'
+    );
+
+    return this.parseJSON(response) || {
+      daysPlanted: daysSincePlanting,
+      daysToHarvest: 90,
+      currentStage: 'Vegetative',
+      lightingSchedule: '14 hrs On / 10 hrs Off',
+      lightingPercentage: 70,
+      irrigationMethod: 'Drip Irrigation',
+      stageTimeline: {
+        seedling: '0-14 days',
+        vegetative: '15-45 days',
+        flowering: '46-75 days',
+        harvest: '76-90 days'
+      }
+    };
+  }
+
+  static async analyzeYieldProjection(cropName, plantingDate, farmSize, iotData) {
+    const systemPrompt = `You are an agricultural yield analyst. Return ONLY valid JSON:
+{
+  "projectedYield": "e.g., 1,250 kg",
+  "yieldChange": "e.g., +12%",
+  "resourceConsumption": {
+    "water": "e.g., 450L",
+    "energy": "e.g., 124kWh",
+    "nutrients": "e.g., 12kg"
+  },
+  "costEfficiency": {
+    "costPerKg": "e.g., $0.42",
+    "comparison": "e.g., ↓ 5% lower than average"
+  },
+  "harvestDate": "estimated date"
+}`;
+
+    const daysSincePlanting = plantingDate ? Math.floor((new Date() - new Date(plantingDate)) / (1000 * 60 * 60 * 24)) : 0;
+    const iotInfo = iotData ? `Soil Moisture: ${iotData.soilMoisture}%, Temp: ${iotData.temperature}°C, Humidity: ${iotData.humidity}%, Light: ${iotData.lightIntensity} lux` : 'No IoT data';
+
+    const response = await this.callAPI(
+      `Crop: ${cropName}. Farm Size: ${farmSize} acres. Days since planting: ${daysSincePlanting}. IoT Data: ${iotInfo}. Provide:
+- Projected yield in kg
+- Yield change vs average
+- Resource consumption (water, energy, nutrients)
+- Cost efficiency per kg
+- Estimated harvest date`,
+      systemPrompt,
+      'deepseek-v3.1:671b-cloud'
+    );
+
+    return this.parseJSON(response) || {
+      projectedYield: '850 kg',
+      yieldChange: '+8%',
+      resourceConsumption: {
+        water: '350L',
+        energy: '95kWh',
+        nutrients: '8kg'
+      },
+      costEfficiency: {
+        costPerKg: '$0.45',
+        comparison: '↓ 3% lower than average'
+      },
+      harvestDate: 'In 60 days'
+    };
+  }
+
+  static async analyzeGrowingRecommendations(profileData) {
+    const analysisId = `[RECOMMENDATIONS-${Date.now()}]`;
+    console.log(`${analysisId} 🌱 Generating growing recommendations for ${profileData.primaryCrop}...`);
+    const startTime = Date.now();
+    try {
+      const systemPrompt = `You are an expert agricultural advisor. Based on the farmer's profile, provide comprehensive growing recommendations. Return ONLY valid JSON:
+{
+  "soilHealth": {
+    "status": "Excellent|Good|Fair|Poor",
+    "score": 85,
+    "issues": ["list of soil issues if any"],
+    "strengths": ["list of soil strengths"]
+  },
+  "npkStatus": {
+    "nitrogen": {"current": "value from IoT", "required": "optimal value", "status": "Sufficient|Deficient|Excess", "action": "what to do"},
+    "phosphorus": {"current": "value", "required": "optimal", "status": "status", "action": "action"},
+    "potassium": {"current": "value", "required": "optimal", "status": "status", "action": "action"}
+  },
+  "environmentalConditions": {
+    "temperature": {"current": "from IoT", "optimal": "range", "status": "Good|Adjust", "recommendation": "advice"},
+    "moisture": {"current": "from IoT", "optimal": "range", "status": "status", "recommendation": "advice"},
+    "pH": {"current": "from IoT", "optimal": "range", "status": "status", "recommendation": "advice"}
+  },
+  "immediateActions": [
+    {"priority": "High|Medium|Low", "action": "specific action", "reason": "why needed", "timeline": "when to do"}
+  ],
+  "fertilizers": [
+    {"name": "fertilizer name", "dosage": "amount per acre", "timing": "when to apply", "purpose": "why needed"}
+  ],
+  "irrigationPlan": {
+    "frequency": "how often",
+    "amount": "water quantity",
+    "method": "irrigation method",
+    "schedule": "daily schedule"
+  },
+  "pestManagement": {
+    "commonPests": ["list of pests for this crop"],
+    "prevention": ["preventive measures"],
+    "organicSolutions": ["organic pest control methods"]
+  },
+  "weeklyTasks": [
+    {"week": 1, "tasks": ["task list"], "focus": "main focus area"}
+  ],
+  "harvestGuidelines": {
+    "expectedDate": "estimated harvest date",
+    "indicators": ["signs crop is ready"],
+    "bestPractices": ["harvesting tips"]
+  },
+  "riskFactors": ["potential risks to watch"],
+  "successTips": ["tips for maximum yield"]
+}`;
+
+      const iotInfo = profileData.iotData ? 
+        `Current IoT Readings: Nitrogen ${profileData.iotData.nitrogen || 'N/A'}, Phosphorus ${profileData.iotData.phosphorus || 'N/A'}, Potassium ${profileData.iotData.potassium || 'N/A'}, Moisture ${profileData.iotData.moisture || profileData.iotData.soilMoisture || 'N/A'}, Temperature ${profileData.iotData.temperature || 'N/A'}, pH ${profileData.iotData.pH || profileData.iotData.ph || 'N/A'}` 
+        : 'No IoT sensor data available';
+
+      const cropReqs = profileData.cropRequirements ? 
+        `Crop Requirements: NPK (N:${profileData.cropRequirements.npk?.nitrogen || 'N/A'}, P:${profileData.cropRequirements.npk?.phosphorus || 'N/A'}, K:${profileData.cropRequirements.npk?.potassium || 'N/A'}), Temp: ${profileData.cropRequirements.temperature || 'N/A'}, Moisture: ${profileData.cropRequirements.moisture || 'N/A'}` 
+        : 'No crop requirements data';
+
+      const daysPlanted = profileData.plantingDate ? 
+        Math.floor((new Date() - new Date(profileData.plantingDate)) / (1000 * 60 * 60 * 24)) 
+        : 0;
+
+      const response = await this.callAPI(
+        `Generate comprehensive growing recommendations for ${profileData.primaryCrop}. Farm: ${profileData.farmType}, Location: ${profileData.location}, ${profileData.district}. Days since planting: ${daysPlanted}. ${iotInfo}. ${cropReqs}. Provide actionable, specific advice based on actual sensor data.`,
+        systemPrompt,
+        'deepseek-v3.1:671b-cloud'
+      );
+
+      const parsed = this.parseJSON(response);
+      if (parsed) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`${analysisId} ✅ Recommendations generated in ${elapsed}s`);
+        return parsed;
+      }
+      return this.getDefaultRecommendations();
+    } catch (error) {
+      console.error(`${analysisId} ❌ Recommendations error:`, error.message);
+      return this.getDefaultRecommendations();
+    }
+  }
+
+  static getDefaultRecommendations() {
+    return {
+      soilHealth: { status: 'Good', score: 75, issues: [], strengths: ['Balanced nutrients'] },
+      npkStatus: {
+        nitrogen: { current: 'Medium', required: '120-150 ppm', status: 'Sufficient', action: 'Monitor regularly' },
+        phosphorus: { current: 'Medium', required: '50-60 ppm', status: 'Sufficient', action: 'Maintain levels' },
+        potassium: { current: 'Medium', required: '40-50 ppm', status: 'Sufficient', action: 'Monitor regularly' }
+      },
+      environmentalConditions: {
+        temperature: { current: '24°C', optimal: '20-30°C', status: 'Good', recommendation: 'Maintain current conditions' },
+        moisture: { current: '65%', optimal: '60-70%', status: 'Good', recommendation: 'Continue regular watering' },
+        pH: { current: '6.5', optimal: '6.0-7.0', status: 'Good', recommendation: 'pH is optimal' }
+      },
+      immediateActions: [
+        { priority: 'Medium', action: 'Monitor plant health', reason: 'Regular checkup', timeline: 'Daily' }
+      ],
+      fertilizers: [
+        { name: 'Balanced NPK', dosage: '50 kg/acre', timing: 'Every 2 weeks', purpose: 'Maintain nutrient levels' }
+      ],
+      irrigationPlan: {
+        frequency: 'Every 2-3 days',
+        amount: '25-30mm',
+        method: 'Drip irrigation',
+        schedule: 'Early morning 6-8 AM'
+      },
+      pestManagement: {
+        commonPests: ['Aphids', 'Whiteflies'],
+        prevention: ['Regular inspection', 'Maintain field hygiene'],
+        organicSolutions: ['Neem oil spray', 'Beneficial insects']
+      },
+      weeklyTasks: [
+        { week: 1, tasks: ['Monitor growth', 'Check irrigation'], focus: 'Establishment' }
+      ],
+      harvestGuidelines: {
+        expectedDate: 'In 60-90 days',
+        indicators: ['Color change', 'Size maturity'],
+        bestPractices: ['Harvest in morning', 'Handle carefully']
+      },
+      riskFactors: ['Weather changes', 'Pest pressure'],
+      successTips: ['Consistent care', 'Regular monitoring', 'Timely interventions']
+    };
   }
 
   static getDefaultCropAnalysis() {

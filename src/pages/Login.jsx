@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Mail, Lock, User, Leaf, Eye, EyeOff, Loader2, Radio } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { signInWithGoogle, signUpWithEmail, signInWithEmail } from '../services/firebase'
+import { checkProfileCompleted } from '../services/profileService'
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true)
@@ -31,12 +32,12 @@ const Login = () => {
         name: result.user.displayName,
         uid: result.user.uid
       }))
-      // Check if profile is completed
-      const profileCompleted = localStorage.getItem('profileCompleted')
+      // Check if profile is completed in Firebase
+      const profileCompleted = await checkProfileCompleted(result.user.uid)
       if (!profileCompleted || isNewUser) {
         navigate('/profile-setup')
       } else {
-        navigate('/farming-tool')
+        navigate('/dashboard')
       }
     } catch (error) {
       setError(error.message)
@@ -66,12 +67,12 @@ const Login = () => {
         uid: result.user.uid
       }))
       
-      // Check if profile is completed
-      const profileCompleted = localStorage.getItem('profileCompleted')
+      // Check if profile is completed in Firebase
+      const profileCompleted = await checkProfileCompleted(result.user.uid)
       if (!profileCompleted || isNewUser) {
         navigate('/profile-setup')
       } else {
-        navigate('/farming-tool')
+        navigate('/dashboard')
       }
     } catch (error) {
       setError(error.message)

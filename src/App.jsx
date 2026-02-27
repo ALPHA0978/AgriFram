@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 // import { initDevToolsBlocker } from './utils/devToolsBlocker';
 import ProfileSetup from './pages/ProfileSetup';
+import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import About from './pages/About';
 import AIAnalytics from './pages/AIAnalytics';
@@ -35,7 +36,8 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/ai-analytics" element={<AIAnalytics />} />
           <Route path="/analysis" element={<Analysis />} />
