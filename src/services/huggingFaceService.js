@@ -1,7 +1,7 @@
 import { BaseAI } from './baseAI.js';
 import { sanitizeObject } from '../utils/sanitize.js';
 
-export const FALLBACK_DISCLAIMER = '⚠️ DISCLAIMER: This is fallback/default data. The AWS Bedrock AI service could not be reached or returned an error. The information shown is pre-defined default data and NOT a real AI analysis. Please check your network connection and try again.';
+export const FALLBACK_DISCLAIMER = '⚠️ DISCLAIMER: This is fallback/default data. The AI service could not be reached or returned an error. The information shown is pre-defined default data and NOT a real AI analysis. Please check your network connection and try again.';
 
 export class FarmerAI extends BaseAI {
   static sanitizeInputData(data) {
