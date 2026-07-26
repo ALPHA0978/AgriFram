@@ -1,9 +1,9 @@
 // ============================================================
-// BaseAI - All-Ollama Cloud Multi-Agent Architecture
-// Primary:  Ollama Cloud (ollama.com/api) — proxied via Vite
+// BaseAI - AWS Bedrock Multi-Agent Architecture
+// Primary: AWS Bedrock Converse API — proxied via Vite
 // ============================================================
 
-const OLLAMA_API_KEY = import.meta.env.VITE_OPENLLAMA_API_KEY;
+const BEDROCK_API_KEY = import.meta.env.VITE_AWS_BEDROCK_API_KEY;
 
 export class BaseAI {
   static sanitizeInput(input) {
@@ -14,8 +14,28 @@ export class BaseAI {
       .substring(0, 10000);
   }
 
-  // Allow passing the specific model for the multi-agent swarm
-  static async callAPI(prompt, systemPrompt = '', model = 'deepseek-v3.1:671b-cloud', images = null) {
+  static mapModelToBedrock(model) {
+    if (!model) return 'amazon.nova-lite-v1:0';
+    const m = model.toLowerCase();
+    if (m.includes('vl') || m.includes('vision') || m.includes('pathologist') || m.includes('qwen3-vl')) {
+      return 'amazon.nova-pro-v1:0';
+    }
+    if (m.includes('coder') || m.includes('data') || m.includes('chemist') || m.includes('qwen3-coder')) {
+      return 'amazon.nova-micro-v1:0';
+    }
+    if (m.includes('glm') || m.includes('market') || m.includes('economist')) {
+      return 'amazon.nova-lite-v1:0';
+    }
+    if (m.includes('deepseek') || m.includes('boss') || m.includes('master') || m.includes('claude')) {
+      return 'amazon.nova-pro-v1:0';
+    }
+    if (m.includes('nova') || m.includes('llama')) {
+      return model;
+    }
+    return 'amazon.nova-lite-v1:0';
+  }
+
+  static async callAPI(prompt, systemPrompt = '', model = 'amazon.nova-lite-v1:0', images = null) {
     const TRUTHFUL_PROMPT = "You are a concise, accurate agricultural assistant. DO NOT hallucinate. Keep output focused and strictly follow formats.";
     const combinedSystemPrompt = `${TRUTHFUL_PROMPT} ${systemPrompt}`.trim();
 
@@ -26,8 +46,9 @@ export class BaseAI {
       throw new Error('Invalid or empty prompt provided');
     }
 
-    const callId = `[AI-${model.split(':')[0]}-${Date.now().toString().slice(-4)}]`;
-    console.log(`${callId} 🚀 Agent ${model} starting...`);
+    const bedrockModel = this.mapModelToBedrock(model);
+    const callId = `[BEDROCK-${bedrockModel.split('.')[0]}-${Date.now().toString().slice(-4)}]`;
+    console.log(`${callId} 🚀 Agent ${bedrockModel} starting via AWS Bedrock...`);
 
     const controller = new AbortController();
     const timer = setTimeout(() => {
@@ -36,48 +57,75 @@ export class BaseAI {
     }, 150000);
 
     try {
-      const messages = [
-        ...(sanitizedSystemPrompt ? [{ role: "system", content: sanitizedSystemPrompt }] : []),
-        {
-          role: "user",
-          content: sanitizedPrompt,
-          ...(images ? { images } : {}) // Pass base64 image array if provided
-        }
-      ];
+      // Build Converse API User Content
+      const userContent = [{ text: sanitizedPrompt }];
 
-      const res = await fetch('/api/ollama/chat', {
+      if (images && Array.isArray(images) && images.length > 0) {
+        images.forEach(imgBase64 => {
+          let cleanBase64 = imgBase64;
+          let format = 'png';
+          if (imgBase64.includes(';base64,')) {
+            const parts = imgBase64.split(';base64,');
+            cleanBase64 = parts[1];
+            if (parts[0].includes('jpeg') || parts[0].includes('jpg')) format = 'jpeg';
+            if (parts[0].includes('webp')) format = 'webp';
+          }
+          cleanBase64 = cleanBase64.replace(/[^A-Za-z0-9+/=]/g, '');
+          userContent.push({
+            image: {
+              format: format,
+              source: { bytes: cleanBase64 }
+            }
+          });
+        });
+      }
+
+      const payload = {
+        system: sanitizedSystemPrompt ? [{ text: sanitizedSystemPrompt }] : [],
+        messages: [
+          {
+            role: 'user',
+            content: userContent
+          }
+        ],
+        inferenceConfig: {
+          temperature: 0.1,
+          maxTokens: 2000
+        }
+      };
+
+      const res = await fetch(`/api/bedrock/model/${encodeURIComponent(bedrockModel)}/converse`, {
         method: 'POST',
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OLLAMA_API_KEY}`,
+          'Authorization': `Bearer ${BEDROCK_API_KEY}`,
+          'x-api-key': BEDROCK_API_KEY
         },
-        body: JSON.stringify({
-          model: model,
-          messages: messages,
-          stream: false,
-          options: { temperature: 0.1, num_predict: 2000 }
-        })
+        body: JSON.stringify(payload)
       });
 
       clearTimeout(timer);
 
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
-        throw new Error(`Ollama API error: ${res.status} - ${errText}`);
+        throw new Error(`AWS Bedrock API error: ${res.status} - ${errText}`);
       }
 
       const data = await res.json();
 
-      // Handle raw content, stripping <think> tags if Minimax or DeepSeek models are used
       let content =
-        data?.message?.content ||
-        data?.message?.thinking ||
-        data?.response ||
+        data?.output?.message?.content?.[0]?.text ||
+        data?.output?.message?.content ||
+        data?.completion ||
         (typeof data === 'string' ? data : null);
 
+      if (Array.isArray(content)) {
+        content = content.map(c => (typeof c === 'string' ? c : c.text || '')).join('\n');
+      }
+
       if (!content) {
-        throw new Error('No content in Ollama Cloud response');
+        throw new Error('No content returned in AWS Bedrock response');
       }
 
       console.log(`${callId} ✅ Agent finished (${content.length} chars)`);
@@ -102,7 +150,6 @@ export class BaseAI {
         const block = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (block) return JSON.parse(block[1].trim());
 
-        // Extreme fallback: find the first { and last }
         const firstParen = cleaned.indexOf('{');
         const lastParen = cleaned.lastIndexOf('}');
         if (firstParen !== -1 && lastParen !== -1 && lastParen > firstParen) {

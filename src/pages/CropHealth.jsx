@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText, Mic, MicOff, Leaf } from 'lucide-react';
+import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText, Mic, MicOff, Leaf, Sparkles } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 import CustomDropdown from '../components/CustomDropdown';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,23 @@ const CropHealth = () => {
     fertilizer: '',
     pesticide: ''
   });
+
+  const fillSampleCropData = () => {
+    setCropData({
+      cropType: 'Rice',
+      plantingDate: '2026-05-15',
+      fieldSize: '5',
+      variety: 'Basmati 370',
+      growthStage: 'Vegetative',
+      irrigationMethod: 'Drip',
+      fertilizer: 'NPK 10:26:26 & Urea',
+      pesticide: 'Neem Oil Spray',
+      location: 'Punjab, India',
+      symptoms: 'Yellowing of leaf margins, brownish rust spots on lower leaves, slow tiller growth',
+      weatherConditions: 'Warm & humid, avg temp 32°C, moderate rainfall'
+    });
+    setValidationErrors({});
+  };
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [stepMessage, setStepMessage] = useState('');

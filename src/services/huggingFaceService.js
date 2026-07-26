@@ -1,7 +1,7 @@
 import { BaseAI } from './baseAI.js';
 import { sanitizeObject } from '../utils/sanitize.js';
 
-export const FALLBACK_DISCLAIMER = '⚠️ DISCLAIMER: This is fallback/default data. The AI cloud service (minimax-m2:cloud) could not be reached or returned an error. The information shown is pre-defined default data and NOT a real AI analysis. Please check your internet connection and try again.';
+export const FALLBACK_DISCLAIMER = '⚠️ DISCLAIMER: This is fallback/default data. The AWS Bedrock AI service could not be reached or returned an error. The information shown is pre-defined default data and NOT a real AI analysis. Please check your network connection and try again.';
 
 export class FarmerAI extends BaseAI {
   static sanitizeInputData(data) {
@@ -37,7 +37,7 @@ export class FarmerAI extends BaseAI {
 
 Do NOT give generic data. Focus specifically on ${cropName}.`,
       systemPrompt,
-      'deepseek-v3.1:671b-cloud'
+      'amazon.nova-pro-v1:0'
     );
 
     return this.parseJSON(response) || {
@@ -75,26 +75,26 @@ Do NOT give generic data. Focus specifically on ${cropName}.`,
       // ----------------------------------------------------------------------
       const [visionReport, dataReport, marketReport] = await Promise.all([
 
-        // 👁️ Agent 1: The Diagnostician (Qwen3-VL Vision)
+        // 👁️ Agent 1: The Diagnostician (Amazon Nova Pro Vision)
         this.callAPI(
           `Analyze crop: ${sanitizedData.cropType || 'Unknown'}. Symptoms: ${sanitizedData.symptoms || 'None'}. Provide a strict diagnosis of the disease or pest.`,
           'You are a crop pathologist (Diagnostician). Identify specific diseases and pests.',
-          'qwen3-vl:235b-cloud',
+          'amazon.nova-pro-v1:0',
           imageBase64 ? [imageBase64] : undefined
         ).catch(e => `Vision Agent Failed: ${e.message}`),
 
-        // 🔬 Agent 2: The Data Analyst
+        // 🔬 Agent 2: The Data Analyst (Amazon Nova Micro)
         this.callAPI(
           `Raw input: ${farmDataStr}. Analyze the field size, growth stage, fertilizer, and weather. Highlight any critical agricultural risks.`,
           'You are an expert Data Analyst (Soil/Weather). Be highly analytical and concise.',
-          'qwen3-coder:480b-cloud'
+          'amazon.nova-micro-v1:0'
         ).catch(e => `Data Agent Failed: ${e.message}`),
 
-        // 📈 Agent 3: The Economist
+        // 📈 Agent 3: The Economist (Amazon Nova Lite)
         this.callAPI(
           `Crop: ${sanitizedData.cropType || 'Unknown'}. Inputs used: Fertilizer (${sanitizedData.fertilizer || 'None'}), Pesticide (${sanitizedData.pesticide || 'None'}). Analyze ROI and economic risks.`,
           'You are an Agricultural Economist. Focus on ROI, cost-saving, and market efficiency.',
-          'glm-4.6:cloud'
+          'amazon.nova-lite-v1:0'
         ).catch(e => `Market Agent Failed: ${e.message}`)
 
       ]);
@@ -103,18 +103,18 @@ Do NOT give generic data. Focus specifically on ${cropName}.`,
       onStepUpdate?.(3, 'Master Agronomist is synthesizing the expert reports...');
 
       // ----------------------------------------------------------------------
-      // STEP 2: The Master Agent (Llama 3 Cloud) synthesizes the final JSON
+      // STEP 2: The Master Agent (Amazon Nova Pro) synthesizes the final JSON
       // ----------------------------------------------------------------------
       const bossPrompt = `
 You are the Master Agronomist. Review the findings from your three specialized agents:
 
-[Agent 1: Diagnostician (LLaVA)]
+[Agent 1: Diagnostician]
 ${visionReport}
 
-[Agent 2: Data Analyst (Qwen2)]
+[Agent 2: Data Analyst]
 ${dataReport}
 
-[Agent 3: Economist (Mistral)]
+[Agent 3: Economist]
 ${marketReport}
 
 Based entirely on these 3 reports, synthesize ONE final JSON object for the farmer.
@@ -155,7 +155,7 @@ Return ONLY valid JSON matching this exact structure:
       const bossResponse = await this.callAPI(
         bossPrompt,
         'You are the Master Agronomist. Return ONLY strictly valid raw JSON without markdown formatting.',
-        'deepseek-v3.1:671b-cloud'
+        'amazon.nova-pro-v1:0'
       );
 
       const finalAnalysis = this.parseJSON(bossResponse);
@@ -387,18 +387,18 @@ Return ONLY valid JSON matching this exact structure:
       // ----------------------------------------------------------------------
       const [chemistryReport, cropMarketReport] = await Promise.all([
 
-        // 🔬 Agent 1: Soil Chemist (Qwen)
+        // 🔬 Agent 1: Soil Chemist (Amazon Nova Micro)
         this.callAPI(
           `Analyze the physical/chemical makeup: ${rawData}. Provide a scientific breakdown of toxicity, deficiencies, and exact fertilizer needed.`,
           'You are a Chief Soil Chemist. Be highly technical and analytical.',
-          'qwen3-coder:480b-cloud'
+          'amazon.nova-micro-v1:0'
         ).catch(e => `Chemist Failed: ${e.message}`),
 
-        // 📈 Agent 2: Crop Economist (Mistral/GLM)
+        // 📈 Agent 2: Crop Economist (Amazon Nova Lite)
         this.callAPI(
           `Given this soil data: ${rawData}. What are the 3 most profitable crops to grow right now? Include estimated ROI and investment cost.`,
           'You are an Agricultural Economist. Focus purely on crop profitability and market demand.',
-          'glm-4.6:cloud'
+          'amazon.nova-lite-v1:0'
         ).catch(e => `Economist Failed: ${e.message}`)
 
       ]);
@@ -407,7 +407,7 @@ Return ONLY valid JSON matching this exact structure:
       onStepUpdate?.(3, 'Master Agronomist is synthesizing the soil analysis...');
 
       // ----------------------------------------------------------------------
-      // STEP 2: The Master Agent synthesizes the final JSON
+      // STEP 2: The Master Agent (Amazon Nova Pro) synthesizes the final JSON
       // ----------------------------------------------------------------------
       const bossPrompt = `
 You are the Master Agronomist. Review the findings from your two specialized agents:
@@ -468,7 +468,7 @@ Return ONLY valid JSON matching this exact structure:
       const bossResponse = await this.callAPI(
         bossPrompt,
         'You are the Master Agronomist. Return ONLY strictly valid raw JSON without markdown formatting.',
-        'deepseek-v3.1:671b-cloud'
+        'amazon.nova-pro-v1:0'
       );
 
       const finalAnalysis = this.parseJSON(bossResponse);
@@ -658,18 +658,18 @@ Analyze sensor data scientifically and provide precise irrigation scheduling, cl
       // ----------------------------------------------------------------------
       const [dataReport, marketReport] = await Promise.all([
 
-        // 🔬 Agent 1: Data Analyst (Qwen)
+        // 🔬 Agent 1: Data Analyst (Amazon Nova Micro)
         this.callAPI(
           `Location: ${location}. Season: ${season}. Based on current agricultural data, what are the top 3 crop shortages and 2 biggest nutritional gaps in this region?`,
           'You are an Agricultural Data Analyst. Focus purely on supply chain shortages and nutritional needs.',
-          'qwen3-coder:480b-cloud'
+          'amazon.nova-micro-v1:0'
         ).catch(e => `Data Agent Failed: ${e.message}`),
 
-        // 📈 Agent 2: Crop Economist (GLM)
+        // 📈 Agent 2: Crop Economist (Amazon Nova Lite)
         this.callAPI(
           `Location: ${location}. Season: ${season}. What crops currently have rising market prices? Which FMCG/agricultural corporations have increased procurement demand here?`,
           'You are a Corporate Agricultural Economist. Focus on rising prices and corporate buyer demand.',
-          'glm-4.6:cloud'
+          'amazon.nova-lite-v1:0'
         ).catch(e => `Economist Failed: ${e.message}`)
 
       ]);
@@ -677,7 +677,7 @@ Analyze sensor data scientifically and provide precise irrigation scheduling, cl
       console.log(`${analysisId} ✅ Phase 1 Complete - Market Agents reported back.`);
 
       // ----------------------------------------------------------------------
-      // STEP 2: The Master Agent synthesizes the final JSON
+      // STEP 2: The Master Agent (Amazon Nova Pro) synthesizes the final JSON
       // ----------------------------------------------------------------------
       const bossPrompt = `
 You are the Chief Market Intelligence Officer. Review the findings from your two specialized agents:
@@ -701,7 +701,7 @@ Return ONLY valid JSON matching this exact structure:
       const bossResponse = await this.callAPI(
         bossPrompt,
         'You are the Chief Market Officer. Return ONLY strictly valid raw JSON without markdown formatting.',
-        'deepseek-v3.1:671b-cloud'
+        'amazon.nova-pro-v1:0'
       );
 
       const finalAnalysis = this.parseJSON(bossResponse);
@@ -740,7 +740,7 @@ Return ONLY valid JSON matching this exact structure:
     const marketInfo = `Shortages: ${marketConditions.shortages?.join(',')}, Rising prices: ${marketConditions.priceRising?.join(',')}`;
     const userPrompt = `${marketInfo}. Location: ${location}, Season: ${season}, Soil: ${soilType}, Farm Size: ${farmSize} acres. STRICT MAX BUDGET: ₹${budget}. Water: ${waterAvailability}. Suggest 3-5 crops strictly fitting Within the ₹${budget} total budget! If the budget is very low (e.g. ₹1000 for 5 acres = ₹200/acre), you MUST suggest extremely low-cost crops, microgreens, native cover crops, or localized low-investment intercropping. Do not hallucinate high investment costs!`;
 
-    const response = await this.callAPI(userPrompt, systemPrompt, 'deepseek-v3.1:671b-cloud');
+    const response = await this.callAPI(userPrompt, systemPrompt, 'amazon.nova-pro-v1:0');
 
     const parsed = this.parseJSON(response);
     return parsed || [
@@ -763,7 +763,7 @@ Return ONLY valid JSON matching this exact structure:
     const response = await this.callAPI(
       `Analyze which platforms, markets, or companies are increasing procurement for ${crops.join(', ')} in ${location}. CRITICAL: Do NOT suggest FMCG companies like PepsiCo or Nestle for fresh vegetables (like Bottle Gourd or Spinach) unless they actually process them. For fresh vegetables, suggest Q-commerce (Zepto, Blinkit), Grocery Chains (Reliance Fresh, BigBasket, Mother Dairy/Safal), or Local Wholesale APMC Mandis. Only suggest FMCG for grains, potatoes, or cash crops. Provide realistic buyers.`,
       systemPrompt,
-      'qwen3-coder:480b-cloud'
+      'amazon.nova-micro-v1:0'
     );
 
     return this.parseJSON(response) || [
@@ -844,7 +844,7 @@ Return ONLY valid JSON matching this exact structure:
 - Irrigation method
 - Stage timeline breakdown`,
       systemPrompt,
-      'deepseek-v3.1:671b-cloud'
+      'amazon.nova-pro-v1:0'
     );
 
     return this.parseJSON(response) || {
@@ -891,7 +891,7 @@ Return ONLY valid JSON matching this exact structure:
 - Cost efficiency per kg
 - Estimated harvest date`,
       systemPrompt,
-      'deepseek-v3.1:671b-cloud'
+      'amazon.nova-pro-v1:0'
     );
 
     return this.parseJSON(response) || {
@@ -977,7 +977,7 @@ Return ONLY valid JSON matching this exact structure:
       const response = await this.callAPI(
         `Generate comprehensive growing recommendations for ${profileData.primaryCrop}. Farm: ${profileData.farmType}, Location: ${profileData.location}, ${profileData.district}. Days since planting: ${daysPlanted}. ${iotInfo}. ${cropReqs}. Provide actionable, specific advice based on actual sensor data.`,
         systemPrompt,
-        'deepseek-v3.1:671b-cloud'
+        'amazon.nova-pro-v1:0'
       );
 
       const parsed = this.parseJSON(response);

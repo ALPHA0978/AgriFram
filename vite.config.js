@@ -11,10 +11,10 @@ export default defineConfig({
       'Referrer-Policy': 'strict-origin-when-cross-origin'
     },
     proxy: {
-      '/api/ollama': {
-        target: 'https://ollama.com',
+      '/api/bedrock': {
+        target: 'https://bedrock-runtime.us-east-1.amazonaws.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/ollama/, '/api'),
+        rewrite: (path) => path.replace(/^\/api\/bedrock/, ''),
         secure: true,
       }
     }
