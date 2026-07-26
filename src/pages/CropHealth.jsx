@@ -604,7 +604,16 @@ set:
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
+              <button
+                type="button"
+                onClick={fillSampleCropData}
+                disabled={isAnalyzing || isProcessingDoc || isListening}
+                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black font-bold py-4 rounded-lg transition-all duration-300 shadow-lg shadow-yellow-500/20 disabled:opacity-50"
+              >
+                <Sparkles className="w-5 h-5" />
+                <span>Auto-Fill Data</span>
+              </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing || isProcessingDoc || isListening}

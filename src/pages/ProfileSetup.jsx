@@ -87,12 +87,7 @@ const ProfileSetup = () => {
     const fullProfile = { ...profileData, totalLand: totalAcres, farmType, iotDeviceId, cropStatus, sensorCount: iotSensors.length, cropRequirements };
     
     try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) {
-        alert('Please login first');
-        navigate('/login');
-        return;
-      }
+      const userId = auth.currentUser?.uid || 'guest';
       await saveProfile(userId, fullProfile);
       
       // Clear dashboard cache when profile is updated

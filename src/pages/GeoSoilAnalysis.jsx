@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Beaker, BarChart3, Loader, AlertTriangle, CheckCircle, Upload, FileText, Mic, MicOff, Navigation, Target, Ban, Droplets, Leaf, Zap, TrendingUp, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, MapPin, Beaker, BarChart3, Loader, AlertTriangle, CheckCircle, Upload, FileText, Mic, MicOff, Navigation, Target, Ban, Droplets, Leaf, Zap, TrendingUp, Calendar, DollarSign, Sparkles } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 
 const GeoSoilAnalysis = () => {
@@ -15,6 +15,26 @@ const GeoSoilAnalysis = () => {
     salinity: '',
     temperature: ''
   });
+
+  const fillSampleGeoSoilData = () => {
+    setSoilData({
+      ph: '6.8',
+      moisture: '52',
+      organicMatter: '3.4',
+      nitrogen: '135',
+      phosphorus: '42',
+      potassium: '175',
+      salinity: '0.7',
+      temperature: '25'
+    });
+    setLocation({ lat: 30.9010, lng: 75.8573, address: 'Ludhiana, Punjab, India (30.9010, 75.8573)' });
+    setDataSource('demo');
+    setNearbyFields([
+      { id: 'field_1', distance: '0.2km', cropType: 'Wheat', soilData: { ph: '6.7', moisture: '50', organicMatter: '3.3', nitrogen: '130', phosphorus: '40', potassium: '170', salinity: '0.7', temperature: '24' } },
+      { id: 'field_2', distance: '0.5km', cropType: 'Rice', soilData: { ph: '6.9', moisture: '55', organicMatter: '3.5', nitrogen: '140', phosphorus: '44', potassium: '180', salinity: '0.8', temperature: '25' } },
+      { id: 'field_3', distance: '0.8km', cropType: 'Maize', soilData: { ph: '6.8', moisture: '51', organicMatter: '3.4', nitrogen: '135', phosphorus: '42', potassium: '175', salinity: '0.7', temperature: '25' } }
+    ]);
+  };
   const [location, setLocation] = useState({ lat: null, lng: null, address: '' });
   const [nearbyFields, setNearbyFields] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -431,7 +451,16 @@ const GeoSoilAnalysis = () => {
               ))}
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
+              <button
+                type="button"
+                onClick={fillSampleGeoSoilData}
+                disabled={isAnalyzing || isProcessingDoc || isListening}
+                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black font-bold py-4 rounded-lg transition-all duration-300 shadow-lg shadow-yellow-500/20 disabled:opacity-50"
+              >
+                <Sparkles className="w-5 h-5" />
+                <span>Auto-Fill Data</span>
+              </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing || isProcessingDoc || isListening}

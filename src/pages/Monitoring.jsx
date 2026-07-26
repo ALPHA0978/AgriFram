@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Satellite, BarChart3, Droplets, Thermometer, AlertTriangle, CheckCircle, Target, TrendingUp, Loader, Upload, FileText, Mic, MicOff } from 'lucide-react';
+import { ArrowLeft, Satellite, BarChart3, Droplets, Thermometer, AlertTriangle, CheckCircle, Target, TrendingUp, Loader, Upload, FileText, Mic, MicOff, Sparkles } from 'lucide-react';
 import { FarmerAI } from '../services/huggingFaceService';
 import { BaseAI } from '../services/baseAI';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,17 @@ const Monitoring = () => {
     lightIntensity: '',
     rainfall: ''
   });
+
+  const fillSampleSensorData = () => {
+    setSensorData({
+      soilMoisture: '28',
+      airTemperature: '31',
+      humidity: '42',
+      lightIntensity: '38000',
+      rainfall: '12'
+    });
+    setValidationErrors({});
+  };
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [monitoringResults, setMonitoringResults] = useState(null);
   const [uploadedDoc, setUploadedDoc] = useState(null);
@@ -422,7 +433,16 @@ const Monitoring = () => {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+              <button
+                type="button"
+                onClick={fillSampleSensorData}
+                disabled={isAnalyzing || isProcessingDoc || isListening}
+                className="flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black font-bold py-4 rounded-lg transition-all duration-300 shadow-lg shadow-yellow-500/20 disabled:opacity-50"
+              >
+                <Sparkles className="w-5 h-5" />
+                <span>Auto-Fill Data</span>
+              </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isAnalyzing || isProcessingDoc || isListening}

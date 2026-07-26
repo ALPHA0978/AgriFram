@@ -1,8 +1,8 @@
 {
   "projects": {
-    "default": "agrifarm-ai",
-    "staging": "agrifarm-ai",
-    "dist": "harsh-sih-project"
+    "default": "farm2-pharma",
+    "staging": "farm2-pharma",
+    "dist": "farm2-pharma"
   },
   "targets": {},
   "etags": {}
