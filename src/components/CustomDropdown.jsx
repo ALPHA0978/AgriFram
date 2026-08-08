@@ -35,24 +35,25 @@ const CustomDropdown = ({ value, onChange, options, placeholder, className = "",
       <button
         type="button"
         onClick={toggleDropdown}
-        className="w-full px-2 py-2 sm:px-4 sm:py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 flex items-center justify-between text-sm sm:text-base"
+        className="w-full px-4 py-3 bg-[#0f172a]/90 backdrop-blur-2xl border border-white/10 rounded-2xl text-white focus:outline-none focus:border-emerald-500 transition-all duration-200 flex items-center justify-between text-xs sm:text-sm font-bold shadow-lg"
       >
-        <span className={selectedOption ? 'text-white' : 'text-gray-400'}>
+        <span className={selectedOption ? 'text-white' : 'text-slate-400'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-emerald-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
-        <div className="absolute z-[9999] w-full mt-1 bg-gray-800/95 backdrop-blur-sm border border-gray-700/50 rounded-lg shadow-2xl shadow-green-500/10 max-h-60 overflow-y-auto scrollbar-hide">
+        <div className="absolute z-[9999] w-full mt-2 bg-[#0f172a]/95 backdrop-blur-2xl border border-emerald-500/30 rounded-2xl shadow-2xl glow-emerald max-h-60 overflow-y-auto scrollbar-hide py-1">
           {options.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => handleSelect(option.value)}
-              className="w-full px-2 py-2 sm:px-4 sm:py-3 text-left text-white hover:bg-green-400/10 hover:text-green-400 transition-all duration-200 first:rounded-t-lg last:rounded-b-lg text-sm sm:text-base"
+              className="w-full px-4 py-3 text-left text-slate-200 hover:bg-emerald-500/15 hover:text-emerald-300 transition-all duration-200 text-xs sm:text-sm font-bold flex items-center justify-between"
             >
-              {option.label}
+              <span>{option.label}</span>
+              {option.value === value && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
             </button>
           ))}
         </div>

@@ -12,11 +12,8 @@ export class AlphaVantageService {
   }
 
   static async getCommodityPrice(symbol) {
-    if (!this.validateSymbol(symbol)) {
-      throw new Error('Invalid symbol format');
-    }
-
-    const sanitizedSymbol = this.sanitizeInput(symbol);
+    const sanitizedSymbol = this.sanitizeInput(symbol).toUpperCase() || 'CORN';
+    const validSymbol = this.validateSymbol(sanitizedSymbol) ? sanitizedSymbol : 'CORN';
 
     try {
       const systemPrompt = `You are a financial data simulator specializing in agricultural commodities. Generate a realistic JSON response matching the Alpha Vantage 'Global Quote' format. Return ONLY valid JSON:

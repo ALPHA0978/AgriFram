@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Satellite, BarChart3, Droplets, Thermometer, AlertTriangle, CheckCircle, Target, TrendingUp, Loader, Upload, FileText, Mic, MicOff, Sparkles } from 'lucide-react';
-import { FarmerAI } from '../services/huggingFaceService';
+import { FarmerAI } from '../services/farmerAI';
 import { BaseAI } from '../services/baseAI';
 import { useTranslation } from 'react-i18next';
 import { validateInput, getFieldLimits } from '../utils/validationLimits';

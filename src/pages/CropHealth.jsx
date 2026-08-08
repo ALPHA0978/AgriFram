@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, BarChart3, Bug, Beaker, Zap, Target, CheckCircle, DollarSign, Loader, AlertTriangle, X, Upload, FileText, Mic, MicOff, Leaf, Sparkles } from 'lucide-react';
-import { FarmerAI } from '../services/huggingFaceService';
+import { CropHealthAIService as FarmerAI } from '../services/cropHealthAIService';
 import CustomDropdown from '../components/CustomDropdown';
 import { useTranslation } from 'react-i18next';
 import { validateInput, getFieldLimits } from '../utils/validationLimits';
@@ -961,7 +961,7 @@ set:
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div>
                             <span className="text-gray-300">Expected Yield:</span>
-                            <div className="font-bold text-blue-400">{cropAnalysis.yieldPrediction.expected}</div>
+                            <div className="font-bold text-blue-400">{cropAnalysis.yieldPrediction.expectedYield || cropAnalysis.yieldPrediction.expected}</div>
                           </div>
                           <div>
                             <span className="text-gray-300">Quality:</span>
@@ -1133,11 +1133,11 @@ set:
                           Action Plan
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          {cropAnalysis.recommendations.immediate && (
+                          {(cropAnalysis.recommendations.immediate || cropAnalysis.recommendations.immediateActions) && (
                             <div className="p-6 bg-gray-800/50 rounded-xl border border-red-400/30">
                               <h5 className="font-medium text-red-400 mb-3">Immediate Actions</h5>
                               <ul className="space-y-2 text-gray-300">
-                                {cropAnalysis.recommendations.immediate.map((action, index) => (
+                                {(cropAnalysis.recommendations.immediate || cropAnalysis.recommendations.immediateActions).map((action, index) => (
                                   <li key={index} className="flex items-start space-x-2">
                                     <CheckCircle className="w-4 h-4 mt-1 text-green-400" />
                                     <span>{action}</span>
@@ -1146,11 +1146,11 @@ set:
                               </ul>
                             </div>
                           )}
-                          {cropAnalysis.recommendations.weekly && (
+                          {(cropAnalysis.recommendations.weekly || cropAnalysis.recommendations.treatments) && (
                             <div className="p-6 bg-gray-800/50 rounded-xl border border-yellow-400/30">
-                              <h5 className="font-medium text-yellow-400 mb-3">Weekly Actions</h5>
+                              <h5 className="font-medium text-yellow-400 mb-3">Treatment & Weekly Plan</h5>
                               <ul className="space-y-2 text-gray-300">
-                                {cropAnalysis.recommendations.weekly.map((action, index) => (
+                                {(cropAnalysis.recommendations.weekly || cropAnalysis.recommendations.treatments).map((action, index) => (
                                   <li key={index} className="flex items-start space-x-2">
                                     <CheckCircle className="w-4 h-4 mt-1 text-green-400" />
                                     <span>{action}</span>
@@ -1159,13 +1159,11 @@ set:
                               </ul>
                             </div>
                           )}
-                          {(cropAnalysis.recommendations.monthly || cropAnalysis.recommendations.prevention) && (
+                          {(cropAnalysis.recommendations.monthly || cropAnalysis.recommendations.prevention || cropAnalysis.recommendations.preventive) && (
                             <div className="p-6 bg-gray-800/50 rounded-xl border border-blue-400/30">
-                              <h5 className="font-medium text-blue-400 mb-3">
-                                {cropAnalysis.recommendations.prevention ? 'Prevention' : 'Monthly Actions'}
-                              </h5>
+                              <h5 className="font-medium text-blue-400 mb-3">Preventive Care</h5>
                               <ul className="space-y-2 text-gray-300">
-                                {(cropAnalysis.recommendations.monthly || cropAnalysis.recommendations.prevention)?.map((action, index) => (
+                                {(cropAnalysis.recommendations.monthly || cropAnalysis.recommendations.prevention || cropAnalysis.recommendations.preventive)?.map((action, index) => (
                                   <li key={index} className="flex items-start space-x-2">
                                     <CheckCircle className="w-4 h-4 mt-1 text-green-400" />
                                     <span>{action}</span>

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Beaker, BarChart3, Loader, AlertTriangle, CheckCircle, Upload, FileText, Mic, MicOff, Navigation, Target, Ban, Droplets, Leaf, Zap, TrendingUp, Calendar, DollarSign, Sparkles } from 'lucide-react';
-import { FarmerAI } from '../services/huggingFaceService';
+import { SoilAnalysisAIService as FarmerAI } from '../services/soilAnalysisAIService';
 
 const GeoSoilAnalysis = () => {
   const navigate = useNavigate();

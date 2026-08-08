@@ -71,11 +71,20 @@ const ProfileSetup = () => {
     try {
       const { FarmerAI } = await import('../services/huggingFaceService');
       const requirements = await FarmerAI.analyzeCropRequirements(cropName);
-      setCropRequirements(requirements);
+      setCropRequirements(requirements || FarmerAI.getDefaultCropRequirements(cropName));
       setSubStep(6);
     } catch (error) {
-      console.error('Error analyzing crop:', error);
-      alert('Failed to analyze crop requirements. Please try again.');
+      console.warn('Error analyzing crop requirements, using fallback data:', error);
+      const fallbackReqs = {
+        npk: { nitrogen: '120-150 ppm', phosphorus: '50-60 ppm', potassium: '180-200 ppm' },
+        moisture: '60-70% Field Capacity',
+        temperature: '20-30°C',
+        lightIntensity: 'Full Sun (6-8 hours daily)',
+        waterRequirement: '25-35mm per week',
+        growthTips: `Maintain optimal soil moisture, balanced nutrition, and monitor daily for best ${cropName || 'crop'} growth.`
+      };
+      setCropRequirements(fallbackReqs);
+      setSubStep(6);
     } finally {
       setIsAnalyzingCrop(false);
     }

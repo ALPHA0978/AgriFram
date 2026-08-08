@@ -14,7 +14,7 @@ export const VALIDATION_LIMITS = {
   
   // Crop Health limits
   crop: {
-    fieldSize: { min: 0.1, max: 10000, type: 'number', unit: 'acres' },
+    fieldSize: { min: 0.1, max: 500, type: 'number', unit: 'acres' },
     cropType: { type: 'text', maxLength: 50 },
     variety: { type: 'text', maxLength: 50 },
     symptoms: { type: 'text', maxLength: 500 },

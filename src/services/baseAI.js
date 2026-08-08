@@ -15,27 +15,50 @@ export class BaseAI {
   }
 
   static mapModelToBedrock(model) {
-    if (!model) return 'amazon.nova-lite-v1:0';
+    if (!model) return 'amazon.nova-pro-v1:0';
     const m = model.toLowerCase();
-    if (m.includes('vl') || m.includes('vision') || m.includes('pathologist') || m.includes('qwen3-vl')) {
+
+    // Anthropic Provider Models on AWS Bedrock
+    if (m.includes('claude-3-5') || m.includes('sonnet')) {
+      return 'us.anthropic.claude-3-5-sonnet-20241022-v2:0';
+    }
+    if (m.includes('claude-3-haiku') || m.includes('haiku')) {
+      return 'us.anthropic.claude-3-haiku-20240307-v1:0';
+    }
+
+    // Meta Llama Provider Models on AWS Bedrock
+    if (m.includes('llama3-2-90b') || m.includes('llama-90b')) {
+      return 'us.meta.llama3-2-90b-instruct-v1:0';
+    }
+    if (m.includes('llama3-2-11b') || m.includes('llama-11b')) {
+      return 'us.meta.llama3-2-11b-instruct-v1:0';
+    }
+
+    // Mistral AI Provider Models on AWS Bedrock
+    if (m.includes('mistral-large')) {
+      return 'us.mistral.mistral-large-2407-v1:0';
+    }
+
+    // Cohere Provider Models on AWS Bedrock
+    if (m.includes('cohere') || m.includes('command-r')) {
+      return 'cohere.command-r-plus-v1:0';
+    }
+
+    // Amazon Nova Provider Models on AWS Bedrock
+    if (m.includes('micro')) return 'amazon.nova-micro-v1:0';
+    if (m.includes('lite') || m.includes('economist') || m.includes('glm')) return 'amazon.nova-lite-v1:0';
+    if (m.includes('pro') || m.includes('vision') || m.includes('pathologist') || m.includes('boss') || m.includes('master') || m.includes('deepseek') || m.includes('coder') || m.includes('qwen')) {
       return 'amazon.nova-pro-v1:0';
     }
-    if (m.includes('coder') || m.includes('data') || m.includes('chemist') || m.includes('qwen3-coder')) {
-      return 'amazon.nova-micro-v1:0';
-    }
-    if (m.includes('glm') || m.includes('market') || m.includes('economist')) {
-      return 'amazon.nova-lite-v1:0';
-    }
-    if (m.includes('deepseek') || m.includes('boss') || m.includes('master') || m.includes('claude')) {
-      return 'amazon.nova-pro-v1:0';
-    }
-    if (m.includes('nova') || m.includes('llama')) {
+
+    if (m.startsWith('amazon.') || m.startsWith('us.') || m.startsWith('cohere.')) {
       return model;
     }
-    return 'amazon.nova-lite-v1:0';
+
+    return 'amazon.nova-pro-v1:0';
   }
 
-  static async callAPI(prompt, systemPrompt = '', model = 'amazon.nova-lite-v1:0', images = null) {
+  static async callAPI(prompt, systemPrompt = '', model = 'amazon.nova-pro-v1:0', images = null) {
     const TRUTHFUL_PROMPT = "You are a concise, accurate agricultural assistant. DO NOT hallucinate. Keep output focused and strictly follow formats.";
     const combinedSystemPrompt = `${TRUTHFUL_PROMPT} ${systemPrompt}`.trim();
 
@@ -109,6 +132,11 @@ export class BaseAI {
 
       if (!res.ok) {
         const errText = await res.text().catch(() => res.statusText);
+        // Failover retry to amazon.nova-pro-v1:0 if primary provider model is disabled on IAM
+        if (bedrockModel !== 'amazon.nova-pro-v1:0') {
+          console.warn(`${callId} ⚠️ Primary model ${bedrockModel} error (${res.status}). Failing over to amazon.nova-pro-v1:0...`);
+          return this.callAPI(prompt, systemPrompt, 'amazon.nova-pro-v1:0', images);
+        }
         throw new Error(`AWS Bedrock API error: ${res.status} - ${errText}`);
       }
 
@@ -132,6 +160,11 @@ export class BaseAI {
       return content;
     } catch (error) {
       clearTimeout(timer);
+      // Automatic retry failover to Nova Pro if model request failed
+      if (model !== 'amazon.nova-pro-v1:0' && !error.message.includes('timed out')) {
+        console.warn(`${callId} ⚠️ Exception on ${model}: ${error.message}. Retrying with amazon.nova-pro-v1:0...`);
+        return this.callAPI(prompt, systemPrompt, 'amazon.nova-pro-v1:0', images).catch(() => { throw error; });
+      }
       console.error(`${callId} ❌ Agent Failed:`, error.message);
       throw error;
     }
